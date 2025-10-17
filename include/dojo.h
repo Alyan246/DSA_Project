@@ -1,8 +1,24 @@
 #pragma once
+
 #include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
-#include <optional>
+#include "map.h"
 
-class dojo {
+class Dojo {
+private:
+    int health;
+    int maxHealth;
+    GridPosition position;
+    bool isDestroyed;
 
+public:
+    Dojo(GridPosition pos, int maxHealth = 100);
+    ~Dojo();
+    
+    void takeDamage(int amount);
+    void repair(int amount);
+    bool isDojoDestroyed() const;
+    int getHealth() const;
+    int getMaxHealth() const;
+    GridPosition getPosition() const;
+    float getHealthPercentage() const;
 };

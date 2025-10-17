@@ -1,8 +1,8 @@
-#include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
-#include "map.h"
+#include "game.h"
 
-
-
-
-
+int main() {
+    Game game;
+    game.initialize();
+    game.run();
+    return 0;
+}
