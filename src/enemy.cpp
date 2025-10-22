@@ -61,11 +61,10 @@ void Enemy::moveAlongPath(float deltaTime) {
 }
 
 void Enemy::calculatePath(const Map& map) {
-    // This is where A* pathfinding will be implemented
-    // For now, create a simple straight path
+    // Pathfinding implementation goes here
     GridPosition dojoPos = map.getDojoPosition();
     
-    // Simple path: move toward dojo in straight lines
+    // Simple path: (made by AI/placeholder)
     pathLength = 2;
     path = new GridPosition[pathLength];
     path[0] = GridPosition(dojoPos.x, currentPosition.y); // Move horizontally first

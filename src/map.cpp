@@ -17,8 +17,7 @@ Map::Map() : dojoPosition(18, 7), spawnPoint(1, 7) {
 Map::~Map() {}
 
 void Map::loadMap(int mapNumber) {
-    // Load different map layouts based on mapNumber
-    // This will be implemented with the actual map designs
+    //for different map designs
 }
 
 int Map::getCellType(int x, int y) const { 
@@ -53,8 +52,8 @@ int Map::getHeight() const {
 }
 
 GridPosition* Map::findPath(const GridPosition& start, const GridPosition& end, int& pathLength) {
-    // Placeholder for A* pathfinding algorithm
-    // For now, return a simple direct path
+    //path finding Algorithm goes here
+    //placeholder path for now:
     pathLength = 2;
     GridPosition* path = new GridPosition[pathLength];
     path[0] = GridPosition(end.x, start.y);
@@ -62,7 +61,7 @@ GridPosition* Map::findPath(const GridPosition& start, const GridPosition& end, 
     return path;
 }
 
-void Map::calculatePathWeights() {
+void Map::calculatePathWeights() { //pathfinding helper function
     // Calculate path weights for enemy decision making
     // This will be used in the pathfinding algorithm
 }
