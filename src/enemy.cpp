@@ -1,4 +1,4 @@
-#include "Enemy.h"
+#include "enemy.h"
 #include <cmath>
 
 Enemy::Enemy(int type, int health, int damage, float speed, GridPosition spawnPos) 

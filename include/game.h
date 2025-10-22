@@ -1,15 +1,17 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include "Map.h"
-#include "Allies.h"
-#include "Enemy.h"
-#include "Dojo.h"
-#include "Renderer.h"
+#include <SFML/Window.hpp>
+#include "map.h"
+#include "allies.h"
+#include "enemy.h"
+#include "dojo.h"
 
 class Game {
 private:
-    Renderer renderer;
+    sf::RenderWindow window;
+    sf::Font font;
+    
     Map* currentMap;
     Dojo* playerDojo;
     Ally** allies;
@@ -40,4 +42,11 @@ public:
     void addResources(int amount);
     bool canPlaceAlly(int gridX, int gridY);
     void cleanup();
+    
+    // Rendering methods
+    void renderMap();
+    void renderAlly(const Ally& ally);
+    void renderEnemy(const Enemy& enemy);
+    void renderDojo();
+    void renderUI();
 };
