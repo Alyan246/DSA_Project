@@ -4,14 +4,18 @@
 Game::Game() :
                 currentMap(nullptr), playerDojo(nullptr), allies(nullptr), enemies(nullptr),
                 currentWave(0), playerResources(100), gameRunning(false), gameWon(false), gameLost(false),
-                maxAllies(50), maxEnemies(100), allyCount(0), enemyCount(0), windowheight(sf::VideoMode::getDesktopMode().size.y * 0.89f), windowwidth(sf::VideoMode::getDesktopMode().size.x * 0.95f),
-                window(sf::VideoMode({sf::VideoMode::getDesktopMode().size.x * 0.95f,sf::VideoMode::getDesktopMode().size.y * 0.89f}),"DojoDefender")
+                maxAllies(50), maxEnemies(100), allyCount(0), enemyCount(0), windowheight(sf::VideoMode::getDesktopMode().size.y * 0.8f), windowwidth(sf::VideoMode::getDesktopMode().size.x * 0.8f),
+                window(sf::VideoMode({sf::VideoMode::getDesktopMode().size.x * 0.8f,sf::VideoMode::getDesktopMode().size.y * 0.8f}),"DojoDefender")
                {
     allies = new Ally*[maxAllies];
     enemies = new Enemy*[maxEnemies];
     for(int i = 0; i < maxAllies; i++) allies[i] = nullptr;
     for(int i = 0; i < maxEnemies; i++) enemies[i] = nullptr;
-    window.setPosition({35,10});
+    sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+    int posX = (desktop.getDesktopMode().size.x - windowwidth) / 2;
+    int posY = (desktop.getDesktopMode().size.y - windowheight) / 2.5;
+
+    window.setPosition({posX,posY});
 }
 
 Game::~Game() {
@@ -60,6 +64,23 @@ void Game::handleEvents() {
             if (key->scancode == sf::Keyboard::Scancode::Escape) {
                 gameRunning = false;
                 window.close();
+            }
+        }
+
+        else if(const auto* mousekey = event.getIf<sf::Event::MouseButtonPressed>()){
+            if(mousekey->button == sf::Mouse::Button::Left){
+                if(canPlaceAlly(mousekey->position.x/40,mousekey->position.y/40)){
+                    placeAlly(0,mousekey->position.x/40,mousekey->position.y/40);
+                    cout<<"Placed"<<endl;
+                }
+                else{
+                    cout<<"Not placed"<<endl;
+                }
+            }
+            else{
+                if(canPlaceAlly(mousekey->position.x,mousekey->position.y)){
+                    placeAlly(1,mousekey->position.x,mousekey->position.y);
+                }
             }
         }
 
@@ -114,23 +135,30 @@ void Game::render() {
 
 void Game::renderMap() {
     if (!currentMap) return;
-    
-    sf::RectangleShape cell(sf::Vector2f(40, 40));
+
+    float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth()  ;
+    float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight() ;
+
+    sf::RectangleShape cell(sf::Vector2f(cellWidth, cellHeight));
     cell.setOutlineThickness(1);
-    cell.setOutlineColor(sf::Color::White);
+    cell.setOutlineColor(sf::Color::Black);
     
-    int width = windowwidth/39.65;
-    int height = windowheight/20.1;
+    int width = currentMap->getWidth();
+    int height = currentMap->getHeight();
     
     for(int y = 0; y < height; y++) {
         for(int x = 0; x < width; x++) {
-            sf::Vector2f position(x * 40.0f , y *20.0f);
+            sf::Vector2f position(x * cellWidth , y *cellHeight);
             cell.setPosition(position);
             
-            if(currentMap->isCellFree(x, y)) {
-                cell.setFillColor(sf::Color(100, 100, 100));
-            } else {
-                cell.setFillColor(sf::Color(139, 69, 19));
+            if(currentMap->getCellType(x,y) == 1 ) {
+                cell.setFillColor(sf::Color::Blue);
+            } 
+            else if(currentMap->getCellType(x,y) == 2 ) {
+                cell.setFillColor(sf::Color(139,69,19));
+            }
+            else{
+                cell.setFillColor(sf::Color(100,200,100));
             }
             window.draw(cell);
         }
@@ -174,7 +202,7 @@ void Game::renderDojo() {
     
     sf::RectangleShape shape(sf::Vector2f(60, 60));
     GridPosition pos = playerDojo->getPosition();
-    sf::Vector2f dojopos(pos.x * 40.0f - 10.0f, pos.y * 40.0f - 10.0f);
+    sf::Vector2f dojopos(pos.x , pos.y );
     shape.setPosition(dojopos);
     shape.setFillColor(sf::Color(0, 100, 0));
     window.draw(shape);
@@ -214,6 +242,7 @@ void Game::renderUI() {
 
 void Game::spawnEnemyWave() {
     // Implementation for spawning enemy waves
+
 }
 
 void Game::checkGameOver() {
@@ -258,22 +287,33 @@ void Game::addResources(int amount) {
 }
 
 bool Game::canPlaceAlly(int gridX, int gridY) {
-    if (!currentMap) return false;
-    if (!currentMap->isValidPosition(gridX, gridY)) return false;
-    if (!currentMap->isCellFree(gridX, gridY)) return false;
-    
-    // Check if position is already occupied by another ally
+    if (!currentMap) {
+        std::cout << "❌ currentMap is null!\n";
+        return false;
+    }
+    if (!currentMap->isValidPosition(gridX, gridY)) {
+        std::cout << "❌ Invalid position: " << gridX << "," << gridY << "\n";
+        return false;
+    }
+    if (currentMap->getCellType(gridX,gridY) != 0) {
+        std::cout << "❌ Cell not free: " << gridX << "," << gridY << "\n";
+        return false;
+    }
+
     for (int i = 0; i < allyCount; i++) {
         if (allies[i] && allies[i]->getIsActive()) {
             GridPosition pos = allies[i]->getPosition();
             if (pos.x == gridX && pos.y == gridY) {
+                std::cout << "❌ Cell already has ally: " << gridX << "," << gridY << "\n";
                 return false;
             }
         }
     }
-    
+
+    std::cout << "✅ Can place ally at " << gridX << "," << gridY << "\n";
     return true;
 }
+
 
 void Game::cleanup() {
     delete currentMap;

@@ -1,29 +1,35 @@
 #pragma once
-
+#include <random>
 #include <SFML/Graphics.hpp>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <ctime>
+#include <cstdlib>
+using namespace std;
 
 class GridPosition{
 public:
     int x;
     int y;
     GridPosition(int x = 0, int y = 0) : x(x), y(y) {}
+    
 };
 
 class Map{
 private:
-    static const int WIDTH = 20;
-    static const int HEIGHT = 15;
-    int grid[HEIGHT][WIDTH];
+    int WIDTH ;
+    int HEIGHT ;
+    vector<vector<int>> grid;
     GridPosition dojoPosition;
     GridPosition spawnPoint;
-
 public:
     Map();
     virtual ~Map();
     
     void loadMap(int mapNumber);
     int getCellType(int x, int y) const;
-    bool isCellFree(int x, int y) const;
+  
     bool isValidPosition(int x, int y) const;
     GridPosition getDojoPosition() const;
     GridPosition getSpawnPoint() const;

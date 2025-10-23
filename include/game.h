@@ -8,6 +8,7 @@
 #include "allies.h"
 #include "enemy.h"
 #include "dojo.h"
+using namespace std;
 
 class Game {
 private:
