@@ -2,6 +2,8 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
+#include <iostream>
+#include <string>
 #include "map.h"
 #include "allies.h"
 #include "enemy.h"
@@ -25,6 +27,8 @@ private:
     int maxEnemies;
     int allyCount;
     int enemyCount;
+    int windowheight;
+    int windowwidth;
 
 public:
     Game();

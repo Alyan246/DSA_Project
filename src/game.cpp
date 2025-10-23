@@ -1,14 +1,17 @@
 #include "game.h"
 #include <iostream>
 
-Game::Game() : window(sf::VideoMode(1024, 768), "Dojo Defender"), 
-               currentMap(nullptr), playerDojo(nullptr), allies(nullptr), enemies(nullptr),
-               currentWave(0), playerResources(100), gameRunning(false), gameWon(false), gameLost(false),
-               maxAllies(50), maxEnemies(100), allyCount(0), enemyCount(0) {
+Game::Game() :
+                currentMap(nullptr), playerDojo(nullptr), allies(nullptr), enemies(nullptr),
+                currentWave(0), playerResources(100), gameRunning(false), gameWon(false), gameLost(false),
+                maxAllies(50), maxEnemies(100), allyCount(0), enemyCount(0), windowheight(sf::VideoMode::getDesktopMode().size.y * 0.89f), windowwidth(sf::VideoMode::getDesktopMode().size.x * 0.95f),
+                window(sf::VideoMode({sf::VideoMode::getDesktopMode().size.x * 0.95f,sf::VideoMode::getDesktopMode().size.y * 0.89f}),"DojoDefender")
+               {
     allies = new Ally*[maxAllies];
     enemies = new Enemy*[maxEnemies];
     for(int i = 0; i < maxAllies; i++) allies[i] = nullptr;
     for(int i = 0; i < maxEnemies; i++) enemies[i] = nullptr;
+    window.setPosition({35,10});
 }
 
 Game::~Game() {
@@ -17,7 +20,7 @@ Game::~Game() {
 
 void Game::initialize() {
     // Initialize font
-    if (!font.loadFromFile("assets/font.ttf")) {
+    if (!font.openFromFile("assets/font.ttf")) {
         std::cout << "Failed to load font, using default" << std::endl;
     }
     
@@ -42,15 +45,32 @@ void Game::run() {
 }
 
 void Game::handleEvents() {
-    sf::Event event;
-    while (window.pollEvent(event)) {
-        if (event.type == sf::Event::Closed) {
+    // pollEvent() now returns std::optional<sf::Event>
+    while (auto eventOpt = window.pollEvent()) {
+        const sf::Event& event = *eventOpt;
+
+        // Handle window close
+        if (event.is<sf::Event::Closed>()) {
             gameRunning = false;
             window.close();
         }
-        // Add more event handling for tower placement, etc.
+
+        // Example: handle key press (Escape quits)
+        else if (const auto* key = event.getIf<sf::Event::KeyPressed>()) {
+            if (key->scancode == sf::Keyboard::Scancode::Escape) {
+                gameRunning = false;
+                window.close();
+            }
+        }
+
+        // You can also handle mouse, resize, etc.
+        else if (const auto* resized = event.getIf<sf::Event::Resized>()) {
+            std::cout << "Window resized to " 
+                      << resized->size.x << "x" << resized->size.y << "\n";
+        }
     }
 }
+
 
 void Game::update(float deltaTime) {
     // Update enemies
@@ -99,19 +119,19 @@ void Game::renderMap() {
     cell.setOutlineThickness(1);
     cell.setOutlineColor(sf::Color::White);
     
-    int width = currentMap->getWidth();
-    int height = currentMap->getHeight();
+    int width = windowwidth/39.65;
+    int height = windowheight/20.1;
     
     for(int y = 0; y < height; y++) {
         for(int x = 0; x < width; x++) {
-            cell.setPosition(x * 40.0f, y * 40.0f);
+            sf::Vector2f position(x * 40.0f , y *20.0f);
+            cell.setPosition(position);
             
             if(currentMap->isCellFree(x, y)) {
                 cell.setFillColor(sf::Color(100, 100, 100));
             } else {
                 cell.setFillColor(sf::Color(139, 69, 19));
             }
-            
             window.draw(cell);
         }
     }
@@ -120,8 +140,9 @@ void Game::renderMap() {
 void Game::renderAlly(const Ally& ally) {
     sf::CircleShape shape(15);
     GridPosition pos = ally.getPosition();
-    shape.setPosition(pos.x * 40.0f + 5.0f, pos.y * 40.0f + 5.0f);
-    
+    sf::Vector2f allypos(pos.x * 40.0f + 5.0f, pos.y * 40.0f + 5.0f);
+    shape.setPosition(allypos);
+
     if(ally.getType() == 0) {
         shape.setFillColor(sf::Color::Blue);
     } else {
@@ -134,7 +155,8 @@ void Game::renderAlly(const Ally& ally) {
 void Game::renderEnemy(const Enemy& enemy) {
     sf::CircleShape shape(12);
     GridPosition pos = enemy.getPosition();
-    shape.setPosition(pos.x * 40.0f + 8.0f, pos.y * 40.0f + 8.0f);
+    sf::Vector2f enemypos(pos.x * 40.0f + 8.0f, pos.y * 40.0f + 8.0f);
+    shape.setPosition(enemypos);
     
     if(enemy.getType() == 0) {
         shape.setFillColor(sf::Color::Cyan);
@@ -152,38 +174,41 @@ void Game::renderDojo() {
     
     sf::RectangleShape shape(sf::Vector2f(60, 60));
     GridPosition pos = playerDojo->getPosition();
-    shape.setPosition(pos.x * 40.0f - 10.0f, pos.y * 40.0f - 10.0f);
+    sf::Vector2f dojopos(pos.x * 40.0f - 10.0f, pos.y * 40.0f - 10.0f);
+    shape.setPosition(dojopos);
     shape.setFillColor(sf::Color(0, 100, 0));
     window.draw(shape);
     
     // Health bar
     float healthPercent = playerDojo->getHealthPercentage();
     sf::RectangleShape healthBar(sf::Vector2f(60 * healthPercent, 5));
-    healthBar.setPosition(pos.x * 40.0f - 10.0f, pos.y * 40.0f - 15.0f);
+    sf::Vector2f healthBarpos(pos.x * 40.0f - 10.0f, pos.y * 40.0f - 15.0f);
+    healthBar.setPosition(healthBarpos);
     healthBar.setFillColor(sf::Color::Green);
     window.draw(healthBar);
 }
 
 void Game::renderUI() {
-    sf::Text text;
-    text.setFont(font);
-    text.setCharacterSize(20);
+    sf::Text text(font,"",20);
     text.setFillColor(sf::Color::White);
-    
     text.setString("Resources: " + std::to_string(playerResources));
-    text.setPosition(10.0f, 10.0f);
+    sf::Vector2f textpos(10.0f , 10.0f);
+    text.setPosition(textpos);
     window.draw(text);
     
     text.setString("Wave: " + std::to_string(currentWave));
-    text.setPosition(10.0f, 40.0f);
+
+    text.setPosition(sf::Vector2f(10.0f,40.0f));
     window.draw(text);
     
     text.setString("Dojo Health: " + std::to_string(playerDojo->getHealth()));
-    text.setPosition(10.0f, 70.0f);
+    sf::Vector2f stringpos(10.0f , 70.0f);
+    text.setPosition(stringpos);
     window.draw(text);
     
     text.setString("Allies: " + std::to_string(allyCount) + " | Enemies: " + std::to_string(enemyCount));
-    text.setPosition(10.0f, 100.0f);
+    
+    text.setPosition(sf::Vector2f(10.0f,100.0f));
     window.draw(text);
 }
 
