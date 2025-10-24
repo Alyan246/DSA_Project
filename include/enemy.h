@@ -34,19 +34,19 @@ public:
     int getDamage() const;
 };
 
-class Genin : public Enemy{    //white niggas                
+class Genin : public Enemy{                 
 public:
     Genin(GridPosition spawnPos);
     ~Genin();
 };
 
-class Chunin : public Enemy{   //yellow niggas
+class Chunin : public Enemy{   
 public:
     Chunin(GridPosition spawnPos);
     ~Chunin();
 };
 
-class Jonin : public Enemy{    //black niggas
+class Jonin : public Enemy{   
 public:
     Jonin(GridPosition spawnPos);
     ~Jonin();

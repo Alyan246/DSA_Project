@@ -4,6 +4,7 @@
 #include <SFML/Window.hpp>
 #include <iostream>
 #include <string>
+#include <stack>
 #include "map.h"
 #include "allies.h"
 #include "enemy.h"
@@ -19,6 +20,11 @@ private:
     Dojo* playerDojo;
     Ally** allies;
     Enemy** enemies;
+    std::stack<Enemy*> enemyStack;  
+    float spawnTimer;              
+    float spawnInterval;            
+    int enemiesToSpawn;      
+    int enemiesSpawned;
     int currentWave;
     int playerResources;
     bool gameRunning;
@@ -45,6 +51,8 @@ public:
     void placeAlly(int type, int gridX, int gridY);
     void removeAlly(int gridX, int gridY);
     void addResources(int amount);
+    void initializeEnemyStack();  
+    void spawnFromStack(float deltaTime);
     bool canPlaceAlly(int gridX, int gridY);
     void cleanup();
     

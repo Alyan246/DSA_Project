@@ -4,7 +4,7 @@
 Game::Game() :
                 currentMap(nullptr), playerDojo(nullptr), allies(nullptr), enemies(nullptr),
                 currentWave(0), playerResources(100), gameRunning(false), gameWon(false), gameLost(false),
-                maxAllies(50), maxEnemies(100), allyCount(0), enemyCount(0), windowheight(sf::VideoMode::getDesktopMode().size.y * 0.8f), windowwidth(sf::VideoMode::getDesktopMode().size.x * 0.8f),
+                maxAllies(50), maxEnemies(100), allyCount(0),spawnTimer(0.0f), spawnInterval(2.0f), enemiesToSpawn(20), enemiesSpawned(0), enemyCount(0), windowheight(sf::VideoMode::getDesktopMode().size.y * 0.8f), windowwidth(sf::VideoMode::getDesktopMode().size.x * 0.8f),
                 window(sf::VideoMode({sf::VideoMode::getDesktopMode().size.x * 0.8f,sf::VideoMode::getDesktopMode().size.y * 0.8f}),"DojoDefender")
                {
     allies = new Ally*[maxAllies];
@@ -31,6 +31,7 @@ void Game::initialize() {
     // Initialize map and dojo
     currentMap = new Map();
     playerDojo = new Dojo(currentMap->getDojoPosition(), 100);
+    initializeEnemyStack();
     
     gameRunning = true;
 }
@@ -94,6 +95,8 @@ void Game::handleEvents() {
 
 
 void Game::update(float deltaTime) {
+    spawnFromStack(deltaTime);
+
     // Update enemies
     for(int i = 0; i < enemyCount; i++) {
         if(enemies[i] && enemies[i]->getIsActive()) {
@@ -186,12 +189,12 @@ void Game::renderEnemy(const Enemy& enemy) {
     sf::Vector2f enemypos(pos.x * 40.0f + 8.0f, pos.y * 40.0f + 8.0f);
     shape.setPosition(enemypos);
     
-    if(enemy.getType() == 0) {
-        shape.setFillColor(sf::Color::Cyan);
+    if(enemy.getType() == 0){
+        shape.setFillColor(sf::Color::White);
     } else if(enemy.getType() == 1) {
-        shape.setFillColor(sf::Color::Magenta);
-    } else {
         shape.setFillColor(sf::Color::Yellow);
+    } else {
+        shape.setFillColor(sf::Color::Black);
     }
     
     window.draw(shape);
@@ -238,6 +241,41 @@ void Game::renderUI() {
     
     text.setPosition(sf::Vector2f(10.0f,100.0f));
     window.draw(text);
+}
+
+void Game::initializeEnemyStack(){
+
+    enemyStack.push(new Jonin(currentMap->getSpawnPoint()));
+    enemyStack.push(new Genin(currentMap->getSpawnPoint()));
+    for (int i = 0; i < 3; i++) {
+        enemyStack.push(new Jonin(currentMap->getSpawnPoint()));
+        enemyStack.push(new Chunin(currentMap->getSpawnPoint()));
+        enemyStack.push(new Chunin(currentMap->getSpawnPoint()));
+        enemyStack.push(new Genin(currentMap->getSpawnPoint()));
+        enemyStack.push(new Genin(currentMap->getSpawnPoint()));
+        enemyStack.push(new Genin(currentMap->getSpawnPoint()));
+    }
+    cout << "Enemy stack initialized with " << enemyStack.size() << " enemies" << std::endl;
+}
+
+void Game::spawnFromStack(float deltaTime){
+    if (enemiesSpawned >= enemiesToSpawn) return;
+    
+    spawnTimer += deltaTime;
+    
+    if (spawnTimer >= spawnInterval && !enemyStack.empty()) {
+        if(enemyCount < maxEnemies){
+            Enemy* newEnemy = enemyStack.top();
+            enemyStack.pop();
+            enemies[enemyCount] = newEnemy;
+            enemyCount++;
+            enemiesSpawned++;
+            cout << "Spawned enemy from stack. Type: " << newEnemy->getType() 
+                      << " Remaining in stack: " << enemyStack.size() << std::endl;
+        }
+        
+        spawnTimer = 0.0f;
+    }
 }
 
 void Game::spawnEnemyWave() {
