@@ -1,16 +1,22 @@
 #include "enemy.h"
 #include <cmath>
 
-Enemy::Enemy(int type, int health, int damage, float speed, GridPosition spawnPos) 
+Enemy::Enemy(int type, int health, int damage, double speed, GridPosition spawnPos) 
     : type(type), health(health), maxHealth(health), damage(damage), speed(speed), 
-      currentPosition(spawnPos), path(nullptr), pathLength(0), currentPathIndex(0), 
-      isActive(true), reachedDojo(false) {}
+      currentPosition(spawnPos), path(nullptr), isMoving(true), pathLength(0), currentPathIndex(0), 
+      isActive(true), reachedDojo(false) {
+        sf::Clock deltaClock;
+        double dTime = deltaClock.restart().asSeconds(); 
+
+        pixelPosition.x = spawnPos.x * 40.0f + 20.0f;  
+        pixelPosition.y = spawnPos.y * 40.0f + 20.0f;
+      }
 
 Enemy::~Enemy() {
     delete[] path;
 }
 
-void Enemy::update(float deltaTime, const Map& map) {
+void Enemy::update(double deltaTime, const Map& map) {
     if (!isActive) return;
     
     if (path == nullptr || currentPathIndex >= pathLength) {
@@ -30,46 +36,42 @@ void Enemy::takeDamage(int amount) {
     }
 }
 
-void Enemy::moveAlongPath(float deltaTime) {
-    if (currentPathIndex >= pathLength) return;
+void Enemy::moveAlongPath(float deltaTime){
+    if(!isMoving) return;
+
+    float moveAmount = speed * deltaTime * 2.0f;
+    pixelPosition.x -= moveAmount;
     
-    GridPosition targetPos = path[currentPathIndex];
-    float dx = targetPos.x - currentPosition.x;
-    float dy = targetPos.y - currentPosition.y;
-    float distance = std::sqrt(dx*dx + dy*dy);
+    //for traversing cells through pixels (according to game logic)
+    currentPosition.x = static_cast<int>(pixelPosition.x / 40.0f);
+    currentPosition.y = static_cast<int>(pixelPosition.y / 40.0f);
     
-    if (distance < 0.1f) {
-        currentPathIndex++;
-        return;
-    }
-    
-    dx /= distance;
-    dy /= distance;
-    
-    currentPosition.x += dx * speed * deltaTime;
-    currentPosition.y += dy * speed * deltaTime;
-    
-    // Check if reached waypoint
-    float newDx = targetPos.x - currentPosition.x;
-    float newDy = targetPos.y - currentPosition.y;
-    float newDistance = std::sqrt(newDx*newDx + newDy*newDy);
-    
-    if (newDistance < 0.3f) {
-        currentPosition = targetPos;
-        currentPathIndex++;
+    // stop at target (left side for now)
+    if(pixelPosition.x <= 50.0f){
+        pixelPosition.x = 50.0f;
+        isMoving = false;
     }
 }
 
+//commented out for future use in recursive pathfinding algorithm
 void Enemy::calculatePath(const Map& map) {
-    // Pathfinding implementation goes here
-    GridPosition dojoPos = map.getDojoPosition();
+    // std::cout << "CALCULATE PATH CALLED! Current position: (" 
+    //           << currentPosition.x << "," << currentPosition.y << ")" << std::endl;
+    // GridPosition dojoPos = map.getDojoPosition();
     
-    // Simple path: (made by AI/placeholder)
-    pathLength = 2;
-    path = new GridPosition[pathLength];
-    path[0] = GridPosition(dojoPos.x, currentPosition.y); // Move horizontally first
-    path[1] = dojoPos; // Then move vertically
-    currentPathIndex = 0;
+    // // Create gradual path
+    // pathLength = 6;  // More gradual waypoints
+    // path = new GridPosition[pathLength];
+    
+    // // Gradual movement toward dojo
+    // path[0] = GridPosition(currentPosition.x - 5, currentPosition.y);
+    // path[1] = GridPosition(currentPosition.x - 10, currentPosition.y);
+    // path[2] = GridPosition(currentPosition.x - 15, currentPosition.y);
+    // path[3] = GridPosition(dojoPos.x - 10, currentPosition.y);
+    // path[4] = GridPosition(dojoPos.x - 5, dojoPos.y);
+    // path[5] = dojoPos;
+    
+    // currentPathIndex = 0;
 }
 
 bool Enemy::hasReachedDojo() const { 
@@ -100,14 +102,18 @@ int Enemy::getDamage() const {
     return damage; 
 }
 
+sf::Vector2f Enemy::getPixelPosition() const{ 
+    return pixelPosition; 
+}
+
 // Genin implementation
-Genin::Genin(GridPosition spawnPos) : Enemy(0, 50, 5, 1.0f, spawnPos) {}
+Genin::Genin(GridPosition spawnPos) : Enemy(0, 50, 5 , 30.0f, spawnPos) {}
 Genin::~Genin() {}
 
 // Chunin implementation
-Chunin::Chunin(GridPosition spawnPos) : Enemy(1, 100, 10, 0.8f, spawnPos) {}
+Chunin::Chunin(GridPosition spawnPos) : Enemy(1, 100, 10, 25.0f, spawnPos) {}
 Chunin::~Chunin() {}
 
 // Jonin implementation
-Jonin::Jonin(GridPosition spawnPos) : Enemy(2, 200, 20, 0.6f, spawnPos) {}
+Jonin::Jonin(GridPosition spawnPos) : Enemy(2, 200, 20, 20.0f, spawnPos) {}
 Jonin::~Jonin() {}

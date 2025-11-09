@@ -4,7 +4,7 @@
 Game::Game() :
                 currentMap(nullptr), playerDojo(nullptr), allies(nullptr), enemies(nullptr),
                 currentWave(0), playerResources(100), gameRunning(false), gameWon(false), gameLost(false),
-                maxAllies(50), maxEnemies(100), allyCount(0), enemyCount(0), windowheight(sf::VideoMode::getDesktopMode().size.y * 0.8f), windowwidth(sf::VideoMode::getDesktopMode().size.x * 0.8f),
+                maxAllies(50), maxEnemies(100), allyCount(0),spawnTimer(0.0f), spawnInterval(2.0f), enemiesToSpawn(20), enemiesSpawned(0), enemyCount(0), windowheight(sf::VideoMode::getDesktopMode().size.y * 0.8f), windowwidth(sf::VideoMode::getDesktopMode().size.x * 0.8f),
                 window(sf::VideoMode({sf::VideoMode::getDesktopMode().size.x * 0.8f,sf::VideoMode::getDesktopMode().size.y * 0.8f}),"DojoDefender")
                {
     allies = new Ally*[maxAllies];
@@ -31,6 +31,7 @@ void Game::initialize() {
     // Initialize map and dojo
     currentMap = new Map();
     playerDojo = new Dojo(currentMap->getDojoPosition(), 100);
+    initializeEnemyStack();
     
     gameRunning = true;
 }
@@ -38,6 +39,7 @@ void Game::initialize() {
 void Game::run() {
     sf::Clock clock;
     float deltaTime = 0.0f;
+    window.setVerticalSyncEnabled(true);
     
     while(gameRunning && window.isOpen()) {
         deltaTime = clock.restart().asSeconds();
@@ -94,6 +96,8 @@ void Game::handleEvents() {
 
 
 void Game::update(float deltaTime) {
+    spawnFromStack(deltaTime);
+
     // Update enemies
     for(int i = 0; i < enemyCount; i++) {
         if(enemies[i] && enemies[i]->getIsActive()) {
@@ -138,6 +142,7 @@ void Game::renderMap() {
 
     float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth()  ;
     float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight() ;
+    cout<<"Cell Width: "<<cellWidth<<endl;
 
     sf::RectangleShape cell(sf::Vector2f(cellWidth, cellHeight));
     cell.setOutlineThickness(1);
@@ -182,16 +187,15 @@ void Game::renderAlly(const Ally& ally) {
 
 void Game::renderEnemy(const Enemy& enemy) {
     sf::CircleShape shape(12);
-    GridPosition pos = enemy.getPosition();
-    sf::Vector2f enemypos(pos.x * 40.0f + 8.0f, pos.y * 40.0f + 8.0f);
-    shape.setPosition(enemypos);
+    sf::Vector2f enemyPos = enemy.getPixelPosition();
+    shape.setPosition(enemyPos);
     
-    if(enemy.getType() == 0) {
-        shape.setFillColor(sf::Color::Cyan);
+    if(enemy.getType() == 0){
+        shape.setFillColor(sf::Color::White);
     } else if(enemy.getType() == 1) {
-        shape.setFillColor(sf::Color::Magenta);
-    } else {
         shape.setFillColor(sf::Color::Yellow);
+    } else {
+        shape.setFillColor(sf::Color::Black);
     }
     
     window.draw(shape);
@@ -238,6 +242,68 @@ void Game::renderUI() {
     
     text.setPosition(sf::Vector2f(10.0f,100.0f));
     window.draw(text);
+}
+
+GridPosition Game::getRandomSpawnPosition() {
+    // Use grid coordinates, not pixel coordinates!
+    int gridWidth = currentMap->getWidth();   // Grid width (e.g., 20)
+    int gridHeight = currentMap->getHeight(); // Grid height (e.g., 15)
+    
+    // Spawn on right side (same X), random Y from 3 fixed positions
+    int spawnX = gridWidth - 1;  // Fixed X position (right side of grid)
+    
+    // Three fixed vertical spawn positions in grid coordinates
+    int verticalOptions[3] = {
+        gridHeight / 4,      // Upper (25% from top)
+        gridHeight / 2,      // Middle 
+        gridHeight * 3 / 4   // Lower (75% from top)
+    };
+    
+    // Choose random Y position
+    int randomIndex = rand() % 3;
+    int spawnY = verticalOptions[randomIndex];
+    
+    // Ensure spawnY is within valid grid bounds
+    if (spawnY < 2) spawnY = 2;
+    if (spawnY >= gridHeight - 2) spawnY = gridHeight - 3;
+    
+    std::cout << "Spawning at grid position: (" << spawnX << "," << spawnY << ")" << std::endl;
+    return GridPosition(spawnX, spawnY);
+}
+
+void Game::initializeEnemyStack(){
+
+    enemyStack.push(new Jonin(getRandomSpawnPosition()));
+    enemyStack.push(new Genin(getRandomSpawnPosition()));
+    for (int i = 0; i < 3; i++) {
+        enemyStack.push(new Jonin(getRandomSpawnPosition()));
+        enemyStack.push(new Chunin(getRandomSpawnPosition()));
+        enemyStack.push(new Chunin(getRandomSpawnPosition()));
+        enemyStack.push(new Genin(getRandomSpawnPosition()));
+        enemyStack.push(new Genin(getRandomSpawnPosition()));
+        enemyStack.push(new Genin(getRandomSpawnPosition()));
+    }
+    cout << "Enemy stack initialized with " << enemyStack.size() << " enemies" << std::endl;
+}
+
+void Game::spawnFromStack(float deltaTime){
+    if (enemiesSpawned >= enemiesToSpawn) return;
+    
+    spawnTimer += deltaTime;
+    
+    if (spawnTimer >= spawnInterval && !enemyStack.empty()) {
+        if(enemyCount < maxEnemies){
+            Enemy* newEnemy = enemyStack.top();
+            enemyStack.pop();
+            enemies[enemyCount] = newEnemy;
+            enemyCount++;
+            enemiesSpawned++;
+            cout << "Spawned enemy from stack. Type: " << newEnemy->getType() 
+                      << " Remaining in stack: " << enemyStack.size() << std::endl;
+        }
+        
+        spawnTimer = 0.0f;
+    }
 }
 
 void Game::spawnEnemyWave() {
