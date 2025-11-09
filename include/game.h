@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 #include <stack>
+#include <ctime>
+#include <cstdlib>
 #include "map.h"
 #include "allies.h"
 #include "enemy.h"
@@ -47,6 +49,7 @@ public:
     void update(float deltaTime);
     void render();
     void spawnEnemyWave();
+    GridPosition getRandomSpawnPosition();
     void checkGameOver();
     void placeAlly(int type, int gridX, int gridY);
     void removeAlly(int gridX, int gridY);

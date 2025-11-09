@@ -6,7 +6,7 @@ Map::Map() :  spawnPoint(1, 7) {
     WIDTH = sf::VideoMode::getDesktopMode().size.x/50 ;
     HEIGHT = sf::VideoMode::getDesktopMode().size.y/50 ;
     dojoPosition.x = 0;
-    dojoPosition.y = HEIGHT/2;
+    dojoPosition.y = HEIGHT/4;
     
     grid.resize(HEIGHT, vector<int>(WIDTH));
 
