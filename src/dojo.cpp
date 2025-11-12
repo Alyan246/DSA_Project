@@ -1,7 +1,7 @@
 #include "dojo.h"
 
 Dojo::Dojo(GridPosition pos, int maxHealth) 
-    : position(pos), maxHealth(maxHealth), health(maxHealth), isDestroyed(false) {}
+    : dojoposition(pos), maxHealth(maxHealth), health(maxHealth), isDestroyed(false) {}
 
 Dojo::~Dojo() {}
 
@@ -33,7 +33,7 @@ int Dojo::getMaxHealth() const {
 }
 
 GridPosition Dojo::getPosition() const { 
-    return position; 
+    return dojoposition; 
 }
 
 float Dojo::getHealthPercentage() const { 

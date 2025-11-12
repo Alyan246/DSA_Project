@@ -8,8 +8,8 @@ Enemy::Enemy(int type, int health, int damage, double speed, GridPosition spawnP
         sf::Clock deltaClock;
         double dTime = deltaClock.restart().asSeconds(); 
 
-        pixelPosition.x = spawnPos.x * 40.0f + 20.0f;  
-        pixelPosition.y = spawnPos.y * 40.0f + 20.0f;
+        pixelPosition.x = spawnPos.x * 40.6;  
+        pixelPosition.y = spawnPos.y * 42.2;
       }
 
 Enemy::~Enemy() {
@@ -62,7 +62,7 @@ void Enemy::calculatePath(const Map& map) {
     // // Create gradual path
     // pathLength = 6;  // More gradual waypoints
     // path = new GridPosition[pathLength];
-    
+
     // // Gradual movement toward dojo
     // path[0] = GridPosition(currentPosition.x - 5, currentPosition.y);
     // path[1] = GridPosition(currentPosition.x - 10, currentPosition.y);

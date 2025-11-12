@@ -1,11 +1,12 @@
 #include "game.h"
+#include "map.h"
 #include <iostream>
 
 Game::Game() :
                 currentMap(nullptr), playerDojo(nullptr), allies(nullptr), enemies(nullptr),
                 currentWave(0), playerResources(100), gameRunning(false), gameWon(false), gameLost(false),
                 maxAllies(50), maxEnemies(100), allyCount(0),spawnTimer(0.0f), spawnInterval(2.0f), enemiesToSpawn(20), enemiesSpawned(0), enemyCount(0), windowheight(sf::VideoMode::getDesktopMode().size.y * 0.8f), windowwidth(sf::VideoMode::getDesktopMode().size.x * 0.8f),
-                window(sf::VideoMode({sf::VideoMode::getDesktopMode().size.x * 0.8f,sf::VideoMode::getDesktopMode().size.y * 0.8f}),"DojoDefender")
+                window(sf::VideoMode({static_cast<unsigned int>(sf::VideoMode::getDesktopMode().size.x * 0.8f),static_cast<unsigned int>(sf::VideoMode::getDesktopMode().size.y * 0.8f)}),"DojoDefender")
                {
     allies = new Ally*[maxAllies];
     enemies = new Enemy*[maxEnemies];
@@ -14,8 +15,8 @@ Game::Game() :
     sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     int posX = (desktop.getDesktopMode().size.x - windowwidth) / 2;
     int posY = (desktop.getDesktopMode().size.y - windowheight) / 2.5;
-
     window.setPosition({posX,posY});
+    enemyspawnpoint = GridPosition(0,0);
 }
 
 Game::~Game() {
@@ -31,8 +32,10 @@ void Game::initialize() {
     // Initialize map and dojo
     currentMap = new Map();
     playerDojo = new Dojo(currentMap->getDojoPosition(), 100);
+    enemyspawnpoint = currentMap->getenemyspawn();
+
     initializeEnemyStack();
-    
+
     gameRunning = true;
 }
 
@@ -118,6 +121,7 @@ void Game::render() {
     
     renderMap();
     renderDojo();
+    renderEnemyspawn();
     
     // Render allies
     for(int i = 0; i < allyCount; i++) {
@@ -142,7 +146,7 @@ void Game::renderMap() {
 
     float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth()  ;
     float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight() ;
-    cout<<"Cell Width: "<<cellWidth<<endl;
+    
 
     sf::RectangleShape cell(sf::Vector2f(cellWidth, cellHeight));
     cell.setOutlineThickness(1);
@@ -155,12 +159,24 @@ void Game::renderMap() {
         for(int x = 0; x < width; x++) {
             sf::Vector2f position(x * cellWidth , y *cellHeight);
             cell.setPosition(position);
-            
+           
             if(currentMap->getCellType(x,y) == 1 ) {
                 cell.setFillColor(sf::Color::Blue);
             } 
             else if(currentMap->getCellType(x,y) == 2 ) {
                 cell.setFillColor(sf::Color(139,69,19));
+            }
+            else if(currentMap->getCellType(x,y) == 3){
+                cell.setFillColor(sf::Color::White);
+            }
+            else if(currentMap->getCellType(x,y) == 4){
+                cell.setFillColor(sf::Color::Magenta);
+            }
+            else if(currentMap->getCellType(x,y) == 8){
+                cell.setFillColor(sf::Color::Black);
+            }
+            else if(currentMap->getCellType(x,y) == 9){
+                cell.setFillColor(sf::Color::Cyan);
             }
             else{
                 cell.setFillColor(sf::Color(100,200,100));
@@ -201,12 +217,24 @@ void Game::renderEnemy(const Enemy& enemy) {
     window.draw(shape);
 }
 
+void Game::renderEnemyspawn() {
+
+    sf::RectangleShape shape(sf::Vector2f(60, 60));
+    GridPosition pos = enemyspawnpoint;
+    sf::Vector2f spawnpos(pos.x *40.1 , pos.y *40);
+    shape.setPosition(spawnpos);
+    shape.setFillColor(sf::Color::Magenta);
+
+    window.draw(shape);
+
+}
+
 void Game::renderDojo() {
     if (!playerDojo) return;
     
     sf::RectangleShape shape(sf::Vector2f(60, 60));
     GridPosition pos = playerDojo->getPosition();
-    sf::Vector2f dojopos(pos.x , pos.y );
+    sf::Vector2f dojopos(pos.x * 23 , pos.y *40 );
     shape.setPosition(dojopos);
     shape.setFillColor(sf::Color(0, 100, 0));
     window.draw(shape);
@@ -214,7 +242,7 @@ void Game::renderDojo() {
     // Health bar
     float healthPercent = playerDojo->getHealthPercentage();
     sf::RectangleShape healthBar(sf::Vector2f(60 * healthPercent, 5));
-    sf::Vector2f healthBarpos(pos.x * 40.0f - 10.0f, pos.y * 40.0f - 15.0f);
+    sf::Vector2f healthBarpos(pos.x * 23 , pos.y*39 );
     healthBar.setPosition(healthBarpos);
     healthBar.setFillColor(sf::Color::Green);
     window.draw(healthBar);
@@ -244,44 +272,25 @@ void Game::renderUI() {
     window.draw(text);
 }
 
-GridPosition Game::getRandomSpawnPosition() {
-    // Use grid coordinates, not pixel coordinates!
-    int gridWidth = currentMap->getWidth();   // Grid width (e.g., 20)
-    int gridHeight = currentMap->getHeight(); // Grid height (e.g., 15)
-    
-    // Spawn on right side (same X), random Y from 3 fixed positions
-    int spawnX = gridWidth - 1;  // Fixed X position (right side of grid)
-    
-    // Three fixed vertical spawn positions in grid coordinates
-    int verticalOptions[3] = {
-        gridHeight / 4,      // Upper (25% from top)
-        gridHeight / 2,      // Middle 
-        gridHeight * 3 / 4   // Lower (75% from top)
-    };
-    
-    // Choose random Y position
-    int randomIndex = rand() % 3;
-    int spawnY = verticalOptions[randomIndex];
-    
-    // Ensure spawnY is within valid grid bounds
-    if (spawnY < 2) spawnY = 2;
-    if (spawnY >= gridHeight - 2) spawnY = gridHeight - 3;
-    
-    std::cout << "Spawning at grid position: (" << spawnX << "," << spawnY << ")" << std::endl;
-    return GridPosition(spawnX, spawnY);
+
+
+GridPosition Game::getenemyspawnpoint() const{
+    return enemyspawnpoint;
 }
 
 void Game::initializeEnemyStack(){
 
-    enemyStack.push(new Jonin(getRandomSpawnPosition()));
-    enemyStack.push(new Genin(getRandomSpawnPosition()));
+    GridPosition tempspawn = enemyspawnpoint;
+   
+    enemyStack.push(new Jonin(tempspawn));
+    enemyStack.push(new Genin(tempspawn));
     for (int i = 0; i < 3; i++) {
-        enemyStack.push(new Jonin(getRandomSpawnPosition()));
-        enemyStack.push(new Chunin(getRandomSpawnPosition()));
-        enemyStack.push(new Chunin(getRandomSpawnPosition()));
-        enemyStack.push(new Genin(getRandomSpawnPosition()));
-        enemyStack.push(new Genin(getRandomSpawnPosition()));
-        enemyStack.push(new Genin(getRandomSpawnPosition()));
+        enemyStack.push(new Jonin(tempspawn));
+        enemyStack.push(new Chunin(tempspawn));
+        enemyStack.push(new Chunin(tempspawn));
+        enemyStack.push(new Genin(tempspawn));
+        enemyStack.push(new Genin(tempspawn));
+        enemyStack.push(new Genin(tempspawn));
     }
     cout << "Enemy stack initialized with " << enemyStack.size() << " enemies" << std::endl;
 }
@@ -354,15 +363,15 @@ void Game::addResources(int amount) {
 
 bool Game::canPlaceAlly(int gridX, int gridY) {
     if (!currentMap) {
-        std::cout << "❌ currentMap is null!\n";
+        std::cout << "currentMap is null!\n";
         return false;
     }
     if (!currentMap->isValidPosition(gridX, gridY)) {
-        std::cout << "❌ Invalid position: " << gridX << "," << gridY << "\n";
+        std::cout << "Invalid position: " << gridX << "," << gridY << "\n";
         return false;
     }
     if (currentMap->getCellType(gridX,gridY) != 0) {
-        std::cout << "❌ Cell not free: " << gridX << "," << gridY << "\n";
+        std::cout << "Cell not free: " << gridX << "," << gridY << "\n";
         return false;
     }
 
@@ -376,7 +385,7 @@ bool Game::canPlaceAlly(int gridX, int gridY) {
         }
     }
 
-    std::cout << "✅ Can place ally at " << gridX << "," << gridY << "\n";
+    std::cout << "Can place ally at " << gridX << "," << gridY << "\n";
     return true;
 }
 

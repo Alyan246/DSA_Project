@@ -7,7 +7,7 @@ class Dojo {
 private:
     int health;
     int maxHealth;
-    GridPosition position;
+    GridPosition dojoposition;
     bool isDestroyed;
 
 public:

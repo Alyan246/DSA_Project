@@ -4,6 +4,7 @@
 #include <SFML/Window.hpp>
 #include <iostream>
 #include <string>
+#include <random>
 #include <stack>
 #include <ctime>
 #include <cstdlib>
@@ -17,7 +18,7 @@ class Game {
 private:
     sf::RenderWindow window;
     sf::Font font;
-    
+    GridPosition enemyspawnpoint;
     Map* currentMap;
     Dojo* playerDojo;
     Ally** allies;
@@ -38,7 +39,7 @@ private:
     int enemyCount;
     int windowheight;
     int windowwidth;
-
+    
 public:
     Game();
     ~Game();
@@ -49,7 +50,7 @@ public:
     void update(float deltaTime);
     void render();
     void spawnEnemyWave();
-    GridPosition getRandomSpawnPosition();
+  
     void checkGameOver();
     void placeAlly(int type, int gridX, int gridY);
     void removeAlly(int gridX, int gridY);
@@ -58,7 +59,9 @@ public:
     void spawnFromStack(float deltaTime);
     bool canPlaceAlly(int gridX, int gridY);
     void cleanup();
-    
+    GridPosition getenemyspawnpoint() const;
+    void renderEnemyspawn();
+
     // Rendering methods
     void renderMap();
     void renderAlly(const Ally& ally);
