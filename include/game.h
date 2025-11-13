@@ -68,4 +68,5 @@ public:
     void renderEnemy(const Enemy& enemy);
     void renderDojo();
     void renderUI();
+    void renderArrows();
 };

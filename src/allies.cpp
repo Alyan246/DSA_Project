@@ -2,7 +2,11 @@
 #include <cmath>
 
 Ally::Ally(int type, int damage, int range, float attackSpeed, GridPosition pos) 
-    : type(type), damage(damage), range(range), attackSpeed(attackSpeed), position(pos), isActive(true), attackCooldown(0.0f){}
+    : type(type), damage(damage), range(range), attackSpeed(attackSpeed), position(pos), isActive(true), attackCooldown(0.0f)
+    {
+        pixelPos.x = pos.x * 40.0f + 20.0f; 
+        pixelPos.y = pos.y * 40.0f + 20.0f;
+    }
 
 Ally::~Ally() {}
 
@@ -86,12 +90,72 @@ int Samurai::getMaxHealth() const{
 }
 
 // ArcherTower implementation
-ArcherTower::ArcherTower(GridPosition pos) : Ally(1, 5, 3, 0.5f, pos), arrowSpeed(2.0f), arrowCount(0){
+ArcherTower::ArcherTower(GridPosition pos) 
+    : Ally(1, 5, 5, 0.5f, pos), arrowSpeed(2.0f), arrowCount(0),
+      enemyQueue([](Enemy* a, Enemy* b){
+          
+        if(a->getType() != b->getType()) { //priority queue logic (stronger enemies first) 
+            return a->getType() < b->getType(); //Higher type first
+        }
+          return a->getHealth() < b->getHealth(); //Higher health first
+      })
+{
     for(int i = 0; i < MAX_ARROWS; i++) arrows[i] = nullptr;
 }
 
 ArcherTower::~ArcherTower(){
     for(int i = 0; i <MAX_ARROWS; i++) delete arrows[i];
+}
+
+bool ArcherTower::isInRange(const Enemy* enemy) const{
+    if(!enemy || !enemy->getIsActive()) return false;
+    
+    GridPosition enemyPos = enemy->getPosition();
+    int dx = std::abs(position.x - enemyPos.x);
+    int dy = std::abs(position.y - enemyPos.y);
+    
+    // 5 block radius in all directions
+    return (dx <= 5 && dy <= 5);
+}
+
+void ArcherTower::updateEnemyQueue(Enemy** enemies, int enemyCount){
+    
+    while(!enemyQueue.empty()){
+        enemyQueue.pop();
+    }
+    
+    
+    for(int i = 0; i < enemyCount; i++){
+        if(enemies[i] && enemies[i]->getIsActive() && isInRange(enemies[i])){
+            enemyQueue.push(enemies[i]);
+        }
+    }
+}
+
+// Remove dead or out-of-range enemies from queue
+void ArcherTower::cleanupQueue(){
+    //create a temporary queue to filter out invalid enemies
+    std::priority_queue<Enemy*, std::vector<Enemy*>, 
+        std::function<bool(Enemy*, Enemy*)>> tempQueue(
+            [](Enemy* a, Enemy* b){
+                if(a->getType() != b->getType()){
+                    return a->getType() < b->getType();
+                }
+                return a->getHealth() < b->getHealth();
+            });
+    
+    //copy valid enemies to temp queue
+    while(!enemyQueue.empty()){
+        Enemy* enemy = enemyQueue.top();
+        enemyQueue.pop();
+        
+        if(enemy && enemy->getIsActive() && isInRange(enemy)){
+            tempQueue.push(enemy);
+        }
+    }
+    
+    //restore the queue
+    enemyQueue = std::move(tempQueue);
 }
 
 void ArcherTower::update(float deltaTime, Enemy** enemies, int enemyCount){
@@ -105,33 +169,30 @@ void ArcherTower::update(float deltaTime, Enemy** enemies, int enemyCount){
             arrows[i]->update(deltaTime);
         }
     }  
-    // Find strongest enemy in range (priority queue logic)
-    Enemy* strongestEnemy = nullptr;
-    int highestHealth = -1;
     
-    for(int i = 0; i < enemyCount; i++){
-        if(enemies[i] && enemies[i]->getIsActive()){
-            if(isInRange(enemies[i]->getPosition())){
-                if(enemies[i]->getHealth() > highestHealth){
-                    highestHealth = enemies[i]->getHealth();
-                    strongestEnemy = enemies[i];
-                }
-            }
+    updateEnemyQueue(enemies, enemyCount);
+    
+    
+    cleanupQueue();
+    //attack enemy through priority
+    if(!enemyQueue.empty() && attackCooldown <= 0.0f){
+        Enemy* target = enemyQueue.top();
+        if(target && target->getIsActive() && isInRange(target)){
+            attack(target);
+            attackCooldown = 1.0f / attackSpeed;
+        }else{
+            enemyQueue.pop();
         }
     }
-    if (strongestEnemy && attackCooldown <= 0.0f) {
-        attack(strongestEnemy);
-        attackCooldown = 1.0f / attackSpeed;
-    }
 }
-void ArcherTower::attack(Enemy* target) {
+void ArcherTower::attack(Enemy* target){
     spawnArrow(target);
 }
-void ArcherTower::spawnArrow(Enemy* target) {
-    for (int i = 0; i < MAX_ARROWS; i++) {
-        if (!arrows[i] || !arrows[i]->isActive()) {
+void ArcherTower::spawnArrow(Enemy* target){
+    for(int i = 0; i < MAX_ARROWS; i++){
+        if(!arrows[i] || !arrows[i]->isActive()){
             delete arrows[i];
-            arrows[i] = new Arrow(position, target, damage, arrowSpeed);
+            arrows[i] = new Arrow(pixelPos, target, damage, arrowSpeed);
             break;
         }
     }
@@ -145,10 +206,17 @@ int ArcherTower::getArrowCount() const{
 }
 
 // Arrow implementation
-Arrow::Arrow(GridPosition startPos, Enemy* target, int damage, float speed) 
+Arrow::Arrow(sf::Vector2f startPos, Enemy* target, int damage, float speed) 
     : currentPosition(startPos), target(target), damage(damage), speed(speed), active(true) {}
 
 Arrow::~Arrow() {}
+
+sf::Vector2f Arrow::getTargetPosition() const {
+    if(target && target->getIsActive()){
+        return target->getPixelPosition();
+    }
+    return currentPosition;
+}
 
 void Arrow::update(float deltaTime){
     if (!active || !target || !target->getIsActive()) {
@@ -156,34 +224,35 @@ void Arrow::update(float deltaTime){
         return;
     }
     
-    // Move arrow toward target
-    GridPosition targetPos = target->getPosition();
-    float dx = targetPos.x - currentPosition.x;
-    float dy = targetPos.y - currentPosition.y;
-    float distance = std::sqrt(dx*dx + dy*dy);
+    targetPosition = target->getPixelPosition();
     
-    if(distance < 0.1f){
+    sf::Vector2f direction = targetPosition - currentPosition;
+    float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+    
+    if(distance < 5.0f){ 
         checkHit();
         return;
     }
     
-    dx /= distance;
-    dy /= distance;
+    //normalize direction for constant speed
+    if(distance > 0){
+        direction.x /= distance;
+        direction.y /= distance;
+    }
     
-    currentPosition.x += dx * speed * deltaTime;
-    currentPosition.y += dy * speed * deltaTime;
+    float moveAmount = speed * deltaTime * 50.0f; 
+    currentPosition.x += direction.x * moveAmount;
+    currentPosition.y += direction.y * moveAmount;
     
-    // Check if reached target
-    float newDx = targetPos.x - currentPosition.x;
-    float newDy = targetPos.y - currentPosition.y;
-    float newDistance = std::sqrt(newDx*newDx + newDy*newDy);
+    sf::Vector2f newDirection = targetPosition - currentPosition;
+    float newDistance = std::sqrt(newDirection.x * newDirection.x + newDirection.y * newDirection.y);
     
-    if(newDistance < 0.3f){
+    if(newDistance < 5.0f){
         checkHit();
     }
 }
 
-void Arrow::checkHit() {
+void Arrow::checkHit(){
     if (target && target->getIsActive()){
         target->takeDamage(damage);
     }
@@ -192,12 +261,4 @@ void Arrow::checkHit() {
 
 bool Arrow::isActive() const{ 
     return active; 
-}
-
-GridPosition Arrow::getPosition() const{ 
-    return currentPosition; 
-}
-
-void Arrow::setActive(bool active){ 
-    this->active = active; 
 }
