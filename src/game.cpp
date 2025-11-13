@@ -72,19 +72,27 @@ void Game::handleEvents() {
             }
         }
 
-        else if(const auto* mousekey = event.getIf<sf::Event::MouseButtonPressed>()){
-            if(mousekey->button == sf::Mouse::Button::Left){
-                if(canPlaceAlly(mousekey->position.x/40,mousekey->position.y/40)){
-                    placeAlly(0,mousekey->position.x/40,mousekey->position.y/40);
-                    cout<<"Placed"<<endl;
-                }
-                else{
-                    cout<<"Not placed"<<endl;
+        else if (const auto* mousekey = event.getIf<sf::Event::MouseButtonPressed>()) {
+            if (mousekey->button == sf::Mouse::Button::Left) {
+                // Left click - Archer Tower
+                int gridX = mousekey->position.x / 40;
+                int gridY = mousekey->position.y / 40;
+                if (canPlaceAlly(gridX, gridY)) {
+                    placeAlly(1, gridX, gridY); // Type 1 = Archer Tower
+                    cout << "Placed Archer Tower" << endl;
+                } else {
+                    cout << "Cannot place Archer Tower here" << endl;
                 }
             }
-            else{
-                if(canPlaceAlly(mousekey->position.x,mousekey->position.y)){
-                    placeAlly(1,mousekey->position.x,mousekey->position.y);
+            else if (mousekey->button == sf::Mouse::Button::Right) {
+                // Right click - Samurai
+                int gridX = mousekey->position.x / 40;
+                int gridY = mousekey->position.y / 40;
+                if (canPlaceAlly(gridX, gridY)) {
+                    placeAlly(0, gridX, gridY); // Type 0 = Samurai
+                    cout << "Placed Samurai" << endl;
+                } else {
+                    cout << "Cannot place Samurai here" << endl;
                 }
             }
         }
@@ -136,6 +144,8 @@ void Game::render() {
             renderEnemy(*enemies[i]);
         }
     }
+
+    renderArrows();
     
     renderUI();
     window.display();
@@ -270,6 +280,39 @@ void Game::renderUI() {
     
     text.setPosition(sf::Vector2f(10.0f,100.0f));
     window.draw(text);
+}
+
+void Game::renderArrows(){
+    for(int i = 0; i < allyCount; i++){
+        if(allies[i] && allies[i]->getIsActive() && allies[i]->getType() == 1){
+            ArcherTower* tower = dynamic_cast<ArcherTower*>(allies[i]);
+            if(tower){
+                Arrow** arrows = tower->getArrows();
+                
+        
+                for(int j = 0; j < MAX_ARROWS; j++){
+                    if(arrows[j] && arrows[j]->isActive()){
+            
+                        sf::Vector2f currentPixel = arrows[j]->getCurrentPosition();
+                        sf::Vector2f targetPixel = arrows[j]->getTargetPosition();
+                        
+                        sf::Vector2f direction = targetPixel - currentPixel;
+                       
+                        sf::RectangleShape arrowRect(sf::Vector2f(30.0f, 2.0f));
+                        arrowRect.setPosition(currentPixel);
+                        arrowRect.setFillColor(sf::Color::White);  
+                        float angleRadians = std::atan2(direction.y, direction.x);
+                        sf::Angle rotationAngle = sf::radians(angleRadians);
+                            
+                        arrowRect.setRotation(rotationAngle);
+                            
+                        window.draw(arrowRect);
+                        
+                    }
+                }
+            }
+        }
+    }
 }
 
 
