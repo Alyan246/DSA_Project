@@ -9,9 +9,15 @@ Map::Map() {
     WIDTH = sf::VideoMode::getDesktopMode().size.x / 50;
     HEIGHT = sf::VideoMode::getDesktopMode().size.y / 50;
 
-    enemyspawnPoint = GridPosition(35, 7);
-    dojoPosition = GridPosition(3, 11);
+    srand(time(0));
 
+    // replace y with rand()%10 + 4
+    enemyspawnPoint = GridPosition(35, 7 );
+    // replace y with rand()%10 + 8
+    dojoPosition = GridPosition(2, 11 );
+
+    cout<<"dojo AT "<<dojoPosition.x<<','<<dojoPosition.y<<endl;
+    cout<<"enemy AT "<<enemyspawnPoint.x<< ',' <<enemyspawnPoint.y<<endl;
     grid.resize(WIDTH, vector<int>(HEIGHT, 0)); // ✅ FIX: grid[x][y] means [row][column]
 
     // block edges
@@ -30,7 +36,8 @@ Map::Map() {
 
     // place random obstacles
     srand(time(0));
-    for (int i = 0; i < WIDTH*2; i++) {
+    grid[32][7] = 2;
+    for (int i = 0; i < WIDTH*3; i++) {
         int x = rand() % (WIDTH - 2) + 1;
         int y = rand() % (HEIGHT - 2) + 1;
         if (grid[x][y] == 0 && x != 3 && x != 35 && y!= 7 && y != 11)
@@ -43,14 +50,16 @@ Map::Map() {
     vector<vector<int>> temp1 = grid;
     vector<vector<int>> temp2 = grid;
     vector<vector<int>> temp3 = grid;
+    vector<vector<int>> temp4 = grid;
     
     findPath(enemyspawnPoint, dojoPosition, 2, temp3);
-    findPath(enemyspawnPoint, dojoPosition, 0, temp2);
-    findPath(enemyspawnPoint, dojoPosition, 1, temp1);
+    findPath(enemyspawnPoint, dojoPosition, 0, temp1);
+    findPath(enemyspawnPoint, dojoPosition, 1, temp4);
+    // findPath(enemyspawnPoint, dojoPosition, 3, temp2);
 
     vector<vector<bool>> visited(WIDTH, vector<bool>(HEIGHT, false));
-    grid[35][7] = 8;
-    grid[2][11] = 9;
+    grid[35][enemyspawnPoint.y] = 8;
+    grid[2][dojoPosition.y] = 9;
 
 }
 
@@ -92,9 +101,8 @@ bool Map::findPath(const GridPosition &start, const GridPosition &end, int pathf
     // cout << "Traversing" << endl;
     // cout << "START: " << start.x << " " << start.y << endl;
     // cout << "END  : " << end.x << " " << end.y << endl;
-
-    if (temp[start.x][start.y] == 3) return false;
-
+    if (!isValidPosition(start.x, start.y))
+        return false;
     // print temp at each traversal
     // for (int x = 0; x < WIDTH; x++) {
     //     for (int y = 0; y < HEIGHT; y++) {
@@ -118,9 +126,11 @@ bool Map::findPath(const GridPosition &start, const GridPosition &end, int pathf
 
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
-                if (temp[x][y] == 3) grid[x][y] = 3;
+                if (temp[x][y] == 3)
+                 grid[x][y] = 3;
             }
         }
+        
         return true;
     }
 
@@ -129,27 +139,49 @@ bool Map::findPath(const GridPosition &start, const GridPosition &end, int pathf
         // cout << "PLACED 3 Successfully at " << start.x << ',' << start.y << endl;
 
         if(pathfound == 0){
-            if (findPath(GridPosition(start.x -1 , start.y), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x-1, start.y -1 ), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x, start.y+1), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x+1, start.y ), end, pathfound, temp)) return true;
+               if (findPath(GridPosition(start.x -1 , start.y     ), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x -1 , start.y + 1 ), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x    , start.y - 1 ), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x+1, start.y ), end, pathfound, temp)) return true;
         }
+
         if(pathfound == 1){
-            if (findPath(GridPosition(start.x , start.y +1 ), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x - 1, start.y ),  end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x, start.y  -1 ), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x + 1 , start.y), end, pathfound, temp)) return true;
+            if (findPath(GridPosition(start.x     , start.y + 1 ), end, pathfound, temp)) return true;
+            if (findPath(GridPosition(start.x - 1 , start.y     ), end, pathfound, temp)) return true;
+            if (findPath(GridPosition(start.x     , start.y - 1 ), end, pathfound, temp)) return true;
+            if (findPath(GridPosition(start.x + 1 , start.y     ), end, pathfound, temp)) return true;
         }
         if(pathfound == 2){
-            if (findPath(GridPosition(start.x , start.y - 1), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x-1, start.y  ), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x, start.y+1), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x+1, start.y ), end, pathfound, temp)) return true;
+            if (findPath(GridPosition(start.x     , start.y - 1 ), end, pathfound, temp)) return true;
+            if (findPath(GridPosition(start.x - 1 , start.y     ), end, pathfound, temp)) return true;
+            if (findPath(GridPosition(start.x     , start.y + 1 ), end, pathfound, temp)) return true;
+            if (findPath(GridPosition(start.x + 1 , start.y     ), end, pathfound, temp)) return true;
+        }
+        if(pathfound == 3){
+            int num = (rand() % 4) + 1;
+            if(num == 1){
+                if (findPath(GridPosition(start.x , start.y + 1 ), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x - 1, start.y ),  end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x, start.y  -1 ), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x + 1 , start.y), end, pathfound, temp)) return true;
+            }
+            else if(num == 2){
+                 if (findPath(GridPosition(start.x , start.y - 1), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x-1, start.y  ), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x, start.y+1), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x+1, start.y ), end, pathfound, temp)) return true;
+            }    
+            else{
+                if (findPath(GridPosition(start.x -1 , start.y     ), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x -1 , start.y - 1 ), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x    , start.y + 1 ), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x+1, start.y ), end, pathfound, temp)) return true;
+            }        
         }
 
         temp[start.x][start.y] = 0;
     }
-
+    
     return false;
 }
 

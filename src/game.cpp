@@ -161,7 +161,7 @@ void Game::renderMap() {
             cell.setPosition(position);
            
             if(currentMap->getCellType(x,y) == 1 ) {
-                cell.setFillColor(sf::Color::Blue);
+                cell.setFillColor(sf::Color::Red);
             } 
             else if(currentMap->getCellType(x,y) == 2 ) {
                 cell.setFillColor(sf::Color(139,69,19));
@@ -234,7 +234,7 @@ void Game::renderDojo() {
     
     sf::RectangleShape shape(sf::Vector2f(60, 60));
     GridPosition pos = playerDojo->getPosition();
-    sf::Vector2f dojopos(pos.x * 23 , pos.y *40 );
+    sf::Vector2f dojopos(pos.x * 35 , pos.y *40 );
     shape.setPosition(dojopos);
     shape.setFillColor(sf::Color(0, 100, 0));
     window.draw(shape);
@@ -242,7 +242,7 @@ void Game::renderDojo() {
     // Health bar
     float healthPercent = playerDojo->getHealthPercentage();
     sf::RectangleShape healthBar(sf::Vector2f(60 * healthPercent, 5));
-    sf::Vector2f healthBarpos(pos.x * 23 , pos.y*39 );
+    sf::Vector2f healthBarpos(pos.x * 35 , pos.y*39 );
     healthBar.setPosition(healthBarpos);
     healthBar.setFillColor(sf::Color::Green);
     window.draw(healthBar);
