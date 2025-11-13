@@ -99,12 +99,12 @@ void Game::handleEvents() {
 
 
 void Game::update(float deltaTime) {
-    spawnFromStack(deltaTime);
+    if(allyCount != 0){spawnFromStack(deltaTime);}
 
     // Update enemies
     for(int i = 0; i < enemyCount; i++) {
         if(enemies[i] && enemies[i]->getIsActive()) {
-            enemies[i]->update(deltaTime, *currentMap);
+            enemies[i]->update(deltaTime, currentMap , *allies , allyCount);
         }
     }
     
@@ -304,6 +304,7 @@ void Game::spawnFromStack(float deltaTime){
         if(enemyCount < maxEnemies){
             Enemy* newEnemy = enemyStack.top();
             enemyStack.pop();
+            newEnemy->setPath(currentMap->getoptimumpath(*allies, allyCount));
             enemies[enemyCount] = newEnemy;
             enemyCount++;
             enemiesSpawned++;

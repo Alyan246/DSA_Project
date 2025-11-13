@@ -1,8 +1,8 @@
 #include "allies.h"
-#include <cmath>
+
 
 Ally::Ally(int type, int damage, int range, float attackSpeed, GridPosition pos) 
-    : type(type), damage(damage), range(range), attackSpeed(attackSpeed), position(pos), isActive(true), attackCooldown(0.0f){}
+    : type(type), damage(damage), range(2), attackSpeed(attackSpeed), position(pos), isActive(true), attackCooldown(0.0f){}
 
 Ally::~Ally() {}
 

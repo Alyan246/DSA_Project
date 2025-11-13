@@ -12,7 +12,7 @@ protected:
     double speed;
     bool isMoving;
     GridPosition currentPosition;
-    GridPosition* path;
+    vector<GridPosition>* path;
     int pathLength;
     int currentPathIndex;
     bool isActive;
@@ -24,10 +24,10 @@ public:
     Enemy(int type, int health, int damage, double speed, GridPosition spawnPos);
     virtual ~Enemy();
     
-    virtual void update(double deltaTime, const Map& map);
+    virtual void update(double deltaTime, Map * map , Ally *allies , int count);
     void takeDamage(int amount);
     void moveAlongPath(float deltaTime);
-    void calculatePath(const Map& map);
+    void setPath(vector<GridPosition> path);
     bool hasReachedDojo() const;
     bool getIsActive() const;
     GridPosition getPosition() const;

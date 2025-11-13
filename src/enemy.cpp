@@ -16,11 +16,12 @@ Enemy::~Enemy() {
     delete[] path;
 }
 
-void Enemy::update(double deltaTime, const Map& map) {
+void Enemy::update(double deltaTime, Map * map , Ally *allies , int count) {
     if (!isActive) return;
     
     if (path == nullptr || currentPathIndex >= pathLength) {
-        calculatePath(map);
+        path = new vector<GridPosition>(map->getoptimumpath(allies,count));
+        pathLength = path->size();
     }
     
     if (path != nullptr && currentPathIndex < pathLength) {
@@ -54,24 +55,8 @@ void Enemy::moveAlongPath(float deltaTime){
 }
 
 //commented out for future use in recursive pathfinding algorithm
-void Enemy::calculatePath(const Map& map) {
-    // std::cout << "CALCULATE PATH CALLED! Current position: (" 
-    //           << currentPosition.x << "," << currentPosition.y << ")" << std::endl;
-    // GridPosition dojoPos = map.getDojoPosition();
-    
-    // // Create gradual path
-    // pathLength = 6;  // More gradual waypoints
-    // path = new GridPosition[pathLength];
-
-    // // Gradual movement toward dojo
-    // path[0] = GridPosition(currentPosition.x - 5, currentPosition.y);
-    // path[1] = GridPosition(currentPosition.x - 10, currentPosition.y);
-    // path[2] = GridPosition(currentPosition.x - 15, currentPosition.y);
-    // path[3] = GridPosition(dojoPos.x - 10, currentPosition.y);
-    // path[4] = GridPosition(dojoPos.x - 5, dojoPos.y);
-    // path[5] = dojoPos;
-    
-    // currentPathIndex = 0;
+void Enemy::setPath(vector<GridPosition> enemypath) {
+    path = new vector<GridPosition>( enemypath);
 }
 
 bool Enemy::hasReachedDojo() const { 
