@@ -213,10 +213,10 @@ void Game::renderMap() {
            
 
             // Draw grass texture only on grass cells (type 0)
-            if (grass.getSize().x > 0 && grass.getSize().y > 0 && (currentMap->getCellType(x,y) == 0 || currentMap->getCellType(x,y) == 2 || currentMap->getCellType(x,y) == 3)) {
+            if (grass.getSize().x > 0 && grass.getSize().y > 0 ) {
                 sf::Sprite groundgrass(grass);
                 groundgrass.setPosition(position);
-                sf::Vector2f GrassScale(cellWidth / grass.getSize().x, cellHeight / grass.getSize().y);
+                sf::Vector2f GrassScale((cellWidth) / grass.getSize().x, (cellHeight) / grass.getSize().y);
                 groundgrass.setScale(GrassScale);
                 window.draw(groundgrass);
             }
