@@ -88,7 +88,7 @@ GridPosition Map::getRandomSpawnPosition() {
     if (spawnY >= gridHeight) spawnY = gridHeight - 1;
     if (spawnY < 0) spawnY = 0;
 
-    cout << "Spawn position set to: (" << spawnX << ", " << spawnY << ")" << endl;
+    cout << "Spawn position set to: (" << spawnX << ", " << spawnY << endl;
     return GridPosition(spawnX, spawnY);
 }
 
@@ -238,55 +238,83 @@ GridPosition Map::getDojoPosition() const {
 int Map::getWidth() const { return WIDTH; }
 int Map::getHeight() const { return HEIGHT; }
 
-vector<GridPosition> Map::getoptimumpath (Ally * allies,int count){
-    int path0weight=0, path1weight= 0, path2weight =0;
+vector<GridPosition> Map::getoptimumpath(Ally** allies, int count){
+    int path0weight = 0, path1weight = 0, path2weight = 0;
     vector<GridPosition> result;
-    for(int i = 0 ; i < path0.size() ; i++ ){
+    
+    // Calculate weight for path0
+    for(int i = 0; i < path0.size(); i++){
         GridPosition pos0 = path0.at(i);
-        path0weight++;
-        for(int j = 0; j< count ; j ++){
-            //abs to ignore sign
-            if(abs(allies[j].getPosition().x - pos0.x) < 2 && abs(allies[j].getPosition().y - pos0.y) < 2 && allies[j].isInRange(pos0)){
-                path0weight += 100;
-                cout<<"ally weight added to path 0"<<endl;
+        path0weight += 1;
+        
+        for(int j = 0; j < count; j++){
+            if(allies[j] && allies[j]->getIsActive()){  // Add null check!
+                GridPosition allyPos = allies[j]->getPosition();
+                int dx = abs(allyPos.x - pos0.x);
+                int dy = abs(allyPos.y - pos0.y);
+                
+                int range = (allies[j]->getType() == 0) ? 1 : 2;
+                if(dx <= range && dy <= range){
+                    path0weight += 100;
+                    cout << "Ally at (" << allyPos.x << "," << allyPos.y 
+                         << ") covers path0 tile (" << pos0.x << "," << pos0.y << endl;
+                }
             }
         }
     }
-    for(int i = 0 ; i < path1.size() ; i++ ){
+    
+    // Calculate weight for path1
+    for(int i = 0; i < path1.size(); i++){
         GridPosition pos1 = path1.at(i);
-        path1weight ++;
-        for(int j = 0; j< count ; j ++){
-            if(abs(allies[j].getPosition().x - pos1.x) < 2 && abs(allies[j].getPosition().y - pos1.y) < 2 && allies[j].isInRange(pos1)){
-                path1weight += 100;
-                cout<<"ally weight added to path 1"<<endl;
+        path1weight += 1;
+        
+        for(int j = 0; j < count; j++){
+            if(allies[j] && allies[j]->getIsActive()){
+                GridPosition allyPos = allies[j]->getPosition();
+                int dx = abs(allyPos.x - pos1.x);
+                int dy = abs(allyPos.y - pos1.y);
+                
+                int range = (allies[j]->getType() == 0) ? 1 : 2;
+                if(dx <= range && dy <= range){
+                    path1weight += 100;
+                    cout << "Ally at (" << allyPos.x << "," << allyPos.y 
+                         << ") covers path1 tile (" << pos1.x << "," << pos1.y << endl;
+                }
             }
         }
     }
-    for(int i = 0 ; i < path2.size() ; i++ ){
+    
+    // Calculate weight for path2
+    for(int i = 0; i < path2.size(); i++){
         GridPosition pos2 = path2.at(i);
-        path2weight ++;
-        for(int j = 0; j< count ; j ++){
-            if(abs(allies[j].getPosition().x - pos2.x) < 2 && abs(allies[j].getPosition().y - pos2.y) < 2 && allies[j].isInRange(pos2)){
-                path2weight += 100;
-                cout<<"ally weight added to path 2"<<endl;
+        path2weight += 1;
+        
+        for(int j = 0; j < count; j++){
+            if(allies[j] && allies[j]->getIsActive()){
+                GridPosition allyPos = allies[j]->getPosition();
+                int dx = abs(allyPos.x - pos2.x);
+                int dy = abs(allyPos.y - pos2.y);
+                
+                int range = (allies[j]->getType() == 0) ? 1 : 2;
+                if(dx <= range && dy <= range){
+                    path2weight += 100;
+                }
             }
         }
     }
-    cout<<"path 0 "<< path0weight<<endl;
-    cout<<"path 1 "<< path1weight<<endl;
-    cout<<"path 2 "<< path2weight<<endl;
-    if(path0weight < path1weight && path0weight < path2weight){
-        cout<<"choosen path 0 "<< path0weight<<endl;
+    if(path0weight <= path1weight && path0weight <= path2weight){
+        cout << "Chosen path0 weight=" << path0weight << endl;
         result = path0;
     }
-    else if(path2weight < path0weight && path2weight < path1weight){
-        cout<<"choosen path 2 "<<path1weight<<endl;
+    else if(path2weight <= path0weight && path2weight <= path1weight){
+        cout << "Chosen: path2 weight=" << path2weight << endl;
         result = path2;
     }
     else{
-       cout<<"choosen path 1 "<<path1weight<<endl;
-       result = path1;
+        cout << "Chosen: path1 weight=" << path1weight << endl;
+        result = path1;
     }
+    
     reverse(result.begin(), result.end());
     return result;
 }

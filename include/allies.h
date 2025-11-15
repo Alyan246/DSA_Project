@@ -32,6 +32,7 @@ public:
     bool getIsActive() const;
     sf::Vector2f getPixelPos()const{return pixelPos;}
     void setPosition(GridPosition newPos);
+    
 };
 
 class Samurai : public Ally {
@@ -44,6 +45,7 @@ private:
 
 public:
     Samurai(GridPosition pos);
+    
     ~Samurai();
     
     void update(float deltaTime, Enemy** enemies, int enemyCount, Ally** allies, int allyCount) override;
@@ -52,6 +54,7 @@ public:
     int getHealth() const;
     int getMaxHealth() const;
     void findClosestTarget(Enemy** enemies, int enemyCount);
+    bool isrunning() const;
     void moveToTarget(float deltaTime, Ally** allies, int allyCount);
     bool wouldCollide(const sf::Vector2f& newPos, Ally** allies, int allyCount) const;
     bool isInAttackRange() const;

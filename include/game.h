@@ -30,6 +30,9 @@ private:
     sf::Texture Soil;
     sf::Texture Dojotexture;
     sf::Texture Spawn;
+    sf::Texture Arrowtexture;
+    sf::Texture SamuraiSheet;
+    
     float spawnTimer;              
     float spawnInterval;            
     int enemiesToSpawn;      

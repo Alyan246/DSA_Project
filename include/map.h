@@ -45,7 +45,7 @@ public:
     int getWidth() const;
     int getHeight() const;
     bool findPath(const GridPosition& start, const GridPosition& end, int pathfound, std::vector<std::vector<int>>& tempgrid );
-    vector<GridPosition> getoptimumpath (Ally * allies , int count);
+    vector<GridPosition> getoptimumpath (Ally ** allies , int count);
     GridPosition getRandomSpawnPosition();
     GridPosition getenemyspawn();
 

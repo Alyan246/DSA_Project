@@ -30,6 +30,12 @@ void Game::initialize() {
     }
 
     // Initialize map and dojo
+    if(!SamuraiSheet.loadFromFile("images/Samurai.png")){
+        cout<<"Failed to load samurai";
+    }
+    if(!Arrowtexture.loadFromFile("images/Arrow.png")){
+        cout<<"Failed to load arrow.png";
+    }
     if(!Dojotexture.loadFromFile("images/Dojo.png")){
         cout <<"Failed to load dojo.png";
     }
@@ -176,7 +182,7 @@ void Game::renderMap() {
     
     sf::RectangleShape cell(sf::Vector2f(cellWidth, cellHeight));
     cell.setOutlineThickness(1);
-    cell.setOutlineColor(sf::Color::Black);
+    cell.setOutlineColor(sf::Color(139, 69, 19));
     
     int width = currentMap->getWidth();
     int height = currentMap->getHeight();
@@ -251,12 +257,28 @@ void Game::renderMap() {
 
 
 void Game::renderAlly(const Ally& ally) {
+    float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth();
+    float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight();
+    
     sf::CircleShape shape(15);
     sf::Vector2f allyPos = ally.getPixelPos();
     shape.setPosition(allyPos);
 
     if(ally.getType() == 0){
-        shape.setFillColor(sf::Color::Blue);
+        const Samurai* samurai = dynamic_cast<const Samurai*>(&ally);
+        if(samurai && samurai->isrunning()) {
+            sf::Sprite Samurai(SamuraiSheet);
+            Samurai.setPosition(allyPos);
+            int spriteindex = 14;
+            int col = spriteindex % 4;
+            int row = spriteindex / 4;
+           // Samurai.setTextureRect(sf::IntRect(col * SamuraiSheet.getSize().x/4 , row * SamuraiSheet.getSize().y/4,sheetSize.x / columns,sheetSize.y / rows  ));
+
+           // Samurai.setScale((cellWidth)/SamuraiSheet[])
+            shape.setFillColor(sf::Color::Blue);  // Moving
+        } else {
+            shape.setFillColor(sf::Color::Cyan);  // Stationary/Attacking
+        }
     } else {
         shape.setFillColor(sf::Color::Red);
     }
@@ -348,6 +370,10 @@ void Game::renderUI() {
 }
 
 void Game::renderArrows(){
+    float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth();
+    float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight();
+
+
     for(int i = 0; i < allyCount; i++){
         if(allies[i] && allies[i]->getIsActive() && allies[i]->getType() == 1){
             ArcherTower* tower = dynamic_cast<ArcherTower*>(allies[i]);
@@ -362,16 +388,19 @@ void Game::renderArrows(){
                         sf::Vector2f targetPixel = arrows[j]->getTargetPosition();
                         
                         sf::Vector2f direction = targetPixel - currentPixel;
-                       
+                        sf::Sprite ArrowSprite(Arrowtexture);
                         sf::RectangleShape arrowRect(sf::Vector2f(30.0f, 2.0f));
                         arrowRect.setPosition(currentPixel);
+                        ArrowSprite.setPosition(currentPixel);
                         arrowRect.setFillColor(sf::Color::White);  
                         float angleRadians = std::atan2(direction.y, direction.x);
                         sf::Angle rotationAngle = sf::radians(angleRadians);
-                            
+                        sf::Vector2f Arrowscale((cellWidth)/Arrowtexture.getSize().x , (cellHeight)/Arrowtexture.getSize().y);
+                        ArrowSprite.scale(Arrowscale);
+                        ArrowSprite.setRotation(rotationAngle/3);  
                         arrowRect.setRotation(rotationAngle);
                             
-                        window.draw(arrowRect);
+                        window.draw(ArrowSprite);
                         
                     }
                 }
@@ -411,7 +440,7 @@ void Game::spawnFromStack(float deltaTime){
         if(enemyCount < maxEnemies){
             Enemy* newEnemy = enemyStack.top();
             enemyStack.pop();
-            newEnemy->setPath(currentMap->getoptimumpath(*allies, allyCount)) ;
+            newEnemy->setPath(currentMap->getoptimumpath(allies, allyCount)) ;
             enemies[enemyCount] = newEnemy;
             enemyCount++;
             enemiesSpawned++;
@@ -478,7 +507,7 @@ bool Game::canPlaceAlly(int gridX, int gridY) {
         std::cout << "Invalid position: " << gridX << "," << gridY << "\n";
         return false;
     }
-    if (currentMap->getCellType(gridX,gridY) != 0) {
+    if (currentMap->getCellType(gridX,gridY) == 2 || currentMap->getCellType(gridX,gridY) == 1) {
         std::cout << "Cell not free: " << gridX << "," << gridY << "\n";
         return false;
     }

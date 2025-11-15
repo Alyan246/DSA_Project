@@ -38,6 +38,10 @@ currentTarget(nullptr), isMoving(false){}
 
 Samurai::~Samurai() {}
 
+bool Samurai::isrunning() const{
+    return isMoving;
+}
+
 void Samurai::update(float deltaTime, Enemy** enemies, int enemyCount, Ally** allies, int allyCount){
     if(!isActive)return;
     
