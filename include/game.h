@@ -23,7 +23,11 @@ private:
     Dojo* playerDojo;
     Ally** allies;
     Enemy** enemies;
-    std::stack<Enemy*> enemyStack;  
+    std::stack<Enemy*> enemyStack; 
+    sf::Texture boundarytree; 
+    sf::Texture obstacletree; 
+    sf::Texture grass;
+    sf::Texture Soil;
     float spawnTimer;              
     float spawnInterval;            
     int enemiesToSpawn;      

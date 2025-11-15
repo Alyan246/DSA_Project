@@ -30,6 +30,17 @@ void Game::initialize() {
     }
     
     // Initialize map and dojo
+    if (!boundarytree.loadFromFile("images/Boundary.png")) 
+        {cout << "Failed to load tree.png\n";}
+    if (!obstacletree.loadFromFile("images/Obstacle.png")) 
+        {cout << "Failed to load tree.png\n";}
+    if(!grass.loadFromFile("images/Grass.png")){
+        cout << "Failed to load grass.png\n";
+    }
+    if(!Soil.loadFromFile("images/Soil.png")){
+        cout<<"Failed to load soil";
+    }
+
     currentMap = new Map();
     playerDojo = new Dojo(currentMap->getDojoPosition(), 100);
     enemyspawnpoint = currentMap->getenemyspawn();
@@ -154,27 +165,27 @@ void Game::render() {
 void Game::renderMap() {
     if (!currentMap) return;
 
-    float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth()  ;
-    float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight() ;
+    float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth();
+    float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight();
     
-
     sf::RectangleShape cell(sf::Vector2f(cellWidth, cellHeight));
     cell.setOutlineThickness(1);
     cell.setOutlineColor(sf::Color::Black);
     
     int width = currentMap->getWidth();
     int height = currentMap->getHeight();
-    
+
     for(int y = 0; y < height; y++) {
         for(int x = 0; x < width; x++) {
-            sf::Vector2f position(x * cellWidth , y *cellHeight);
+            sf::Vector2f position(x * cellWidth, y * cellHeight);
             cell.setPosition(position);
-           
-            if(currentMap->getCellType(x,y) == 1 ) {
-                cell.setFillColor(sf::Color::Red);
+            
+            // Set cell background color
+            if(currentMap->getCellType(x,y) == 1) {
+                cell.setFillColor(sf::Color(255, 183, 197)); // Cherry blossom area
             } 
-            else if(currentMap->getCellType(x,y) == 2 ) {
-                cell.setFillColor(sf::Color(139,69,19));
+            else if(currentMap->getCellType(x,y) == 2) {
+                cell.setFillColor(sf::Color(184, 134, 72)); // Path/ground
             }
             else if(currentMap->getCellType(x,y) == 3){
                 cell.setFillColor(sf::Color::White);
@@ -189,12 +200,49 @@ void Game::renderMap() {
                 cell.setFillColor(sf::Color::Cyan);
             }
             else{
-                cell.setFillColor(sf::Color(100,200,100));
+                cell.setFillColor(sf::Color(126, 200, 80)); // Default grass
             }
             window.draw(cell);
+
+           
+
+            // Draw grass texture only on grass cells (type 0)
+            if (grass.getSize().x > 0 && grass.getSize().y > 0 && (currentMap->getCellType(x,y) == 0 || currentMap->getCellType(x,y) == 2)) {
+                sf::Sprite groundgrass(grass);
+                groundgrass.setPosition(position);
+                sf::Vector2f GrassScale(cellWidth / grass.getSize().x, cellHeight / grass.getSize().y);
+                groundgrass.setScale(GrassScale);
+                window.draw(groundgrass);
+            }
+
+            // Draw obstacle trees only on path cells (type 2)
+            if (obstacletree.getSize().x > 0 && obstacletree.getSize().y > 0 && currentMap->getCellType(x,y) == 2) {
+                sf::Sprite Obstacle(obstacletree);
+                sf::Vector2f treeposition((x * cellWidth) -15, (y * cellHeight) -20);
+                Obstacle.setPosition(treeposition);
+                sf::Vector2f Obstacletreescale((cellWidth * 1.7) / obstacletree.getSize().x, (cellHeight * 1.7) / obstacletree.getSize().y);
+                Obstacle.setScale(Obstacletreescale);
+                window.draw(Obstacle);
+            }
+
+            // Draw boundary trees only on boundary cells (type 1)
+            if (boundarytree.getSize().x > 0 && boundarytree.getSize().y > 0 && currentMap->getCellType(x,y) == 1) {
+                sf::Sprite Boundary(boundarytree);
+                sf::Vector2f boundaryPosition((x * cellWidth) -10, (y * cellHeight) -18);
+                Boundary.setPosition(boundaryPosition);
+                sf::Vector2f Boundarytreescale((cellWidth * 1.5) / boundarytree.getSize().x, (cellHeight * 1.5) / boundarytree.getSize().y);
+                Boundary.setScale(Boundarytreescale);
+                window.draw(Boundary);
+            }
+
+
+            
         }
     }
 }
+
+    
+
 
 void Game::renderAlly(const Ally& ally) {
     sf::CircleShape shape(15);
