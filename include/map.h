@@ -2,6 +2,7 @@
 #include <random>
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <ctime>
@@ -25,10 +26,11 @@ private:
     vector<vector<int>> grid;
     GridPosition dojoPosition;
     GridPosition enemyspawnPoint;
-    vector<vector<int>> temp1;
-    vector<vector<int>> temp2;
-    vector<vector<int>> temp3;
-    vector<vector<int>> temp4;
+
+    vector<GridPosition> path0;
+    vector<GridPosition> path1;
+    vector<GridPosition> path2;
+    vector<GridPosition> path3;
 public:
     Map();
     virtual ~Map();
@@ -39,11 +41,13 @@ public:
     bool isValidPosition(int x, int y) const; // checks if in map 
     GridPosition getDojoPosition() const;
     
-    
+    vector<vector<int>>  getgrid();
     int getWidth() const;
     int getHeight() const;
     bool findPath(const GridPosition& start, const GridPosition& end, int pathfound, std::vector<std::vector<int>>& tempgrid );
     vector<GridPosition> getoptimumpath (Ally * allies , int count);
     GridPosition getRandomSpawnPosition();
     GridPosition getenemyspawn();
+
+    
 };

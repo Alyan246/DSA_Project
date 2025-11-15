@@ -59,7 +59,7 @@ void Game::handleEvents() {
         const sf::Event& event = *eventOpt;
 
         // Handle window close
-        if (event.is<sf::Event::Closed>()) {
+        if (event.is<sf::Event::Closed>() || !window.isOpen()) {
             gameRunning = false;
             window.close();
         }
@@ -324,16 +324,15 @@ GridPosition Game::getenemyspawnpoint() const{
 void Game::initializeEnemyStack(){
 
     GridPosition tempspawn = enemyspawnpoint;
-   
-    enemyStack.push(new Jonin(tempspawn));
-    enemyStack.push(new Genin(tempspawn));
+    enemyStack.push(new Jonin(tempspawn , playerDojo->getPosition()));
+    enemyStack.push(new Genin(tempspawn, playerDojo->getPosition()));
     for (int i = 0; i < 3; i++) {
-        enemyStack.push(new Jonin(tempspawn));
-        enemyStack.push(new Chunin(tempspawn));
-        enemyStack.push(new Chunin(tempspawn));
-        enemyStack.push(new Genin(tempspawn));
-        enemyStack.push(new Genin(tempspawn));
-        enemyStack.push(new Genin(tempspawn));
+        enemyStack.push(new Jonin(tempspawn  , playerDojo->getPosition()));
+        enemyStack.push(new Chunin(tempspawn , playerDojo->getPosition()));
+        enemyStack.push(new Chunin(tempspawn , playerDojo->getPosition()));
+        enemyStack.push(new Genin(tempspawn  , playerDojo->getPosition()));
+        enemyStack.push(new Genin(tempspawn  , playerDojo->getPosition()));
+        enemyStack.push(new Genin(tempspawn  , playerDojo->getPosition()));
     }
     cout << "Enemy stack initialized with " << enemyStack.size() << " enemies" << std::endl;
 }
@@ -347,7 +346,7 @@ void Game::spawnFromStack(float deltaTime){
         if(enemyCount < maxEnemies){
             Enemy* newEnemy = enemyStack.top();
             enemyStack.pop();
-            newEnemy->setPath(currentMap->getoptimumpath(*allies, allyCount));
+            newEnemy->setPath(currentMap->getoptimumpath(*allies, allyCount)) ;
             enemies[enemyCount] = newEnemy;
             enemyCount++;
             enemiesSpawned++;

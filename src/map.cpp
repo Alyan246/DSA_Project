@@ -38,7 +38,7 @@ Map::Map() {
     // place random obstacles
     srand(time(0));
     grid[32][7] = 2;
-    for (int i = 0; i < WIDTH*2; i++) {
+    for (int i = 0; i < WIDTH*3; i++) {
         int x = rand() % (WIDTH - 2) + 1;
         int y = rand() % (HEIGHT - 2) + 1;
         if (grid[x][y] == 0 && x != 3 && x != 35 && y!= 7 && y != 11)
@@ -48,16 +48,18 @@ Map::Map() {
     }
 
     cout << "CALLING FIND" << endl;
-    temp1 = grid;
-    temp2 = grid;
-    temp3 = grid;
-    temp4 = grid;
-    
+    vector<vector<int>> temp1 = grid;
+    vector<vector<int>> temp2 = grid;
+    vector<vector<int>> temp3 = grid;
+    vector<vector<int>> temp4 = grid;
+    path0.clear();
+    path1.clear();
+    path2.clear();
+    path3.clear();
     findPath(enemyspawnPoint, dojoPosition, 2, temp3);
     findPath(enemyspawnPoint, dojoPosition, 0, temp1);
     findPath(enemyspawnPoint, dojoPosition, 1, temp2);
     // findPath(enemyspawnPoint, dojoPosition, 3, temp4);
-    
 
     vector<vector<bool>> visited(WIDTH, vector<bool>(HEIGHT, false));
     grid[35][enemyspawnPoint.y] = 8;
@@ -67,6 +69,10 @@ Map::Map() {
 
 GridPosition Map::getenemyspawn() {
     return enemyspawnPoint;
+}
+
+vector<vector<int>> Map::getgrid(){
+    return grid;
 }
 
 GridPosition Map::getRandomSpawnPosition() {
@@ -141,45 +147,69 @@ bool Map::findPath(const GridPosition &start, const GridPosition &end, int pathf
     if (isValidPath(start.x, start.y, temp) ) {
         temp[start.x][start.y] = 3;
         // cout << "PLACED 3 Successfully at " << start.x << ',' << start.y << endl;
-
+        // stored in path0
         if(pathfound == 0){
-                if (findPath(GridPosition(start.x -1 , start.y     ), end, pathfound, temp)) return true;
-                if (findPath(GridPosition(start.x -1 , start.y + 1 ), end, pathfound, temp)) return true;
-                if (findPath(GridPosition(start.x    , start.y - 1 ), end, pathfound, temp)) return true;
-                if (findPath(GridPosition(start.x+1  , start.y     ), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x - 1 , start.y     ), end, pathfound, temp))
+                    {path0.push_back(GridPosition(start.x - 1 , start.y    ));return true;}
+                if (findPath(GridPosition(start.x     , start.y + 1 ), end, pathfound, temp))
+                    {path0.push_back(GridPosition(start.x     , start.y + 1));return true;}
+                if (findPath(GridPosition(start.x     , start.y - 1 ), end, pathfound, temp))
+                    {path0.push_back(GridPosition(start.x     , start.y - 1));return true;}
+                if (findPath(GridPosition(start.x + 1 , start.y     ), end, pathfound, temp))
+                    {path0.push_back(GridPosition(start.x + 1  , start.y    ));return true;}
         }
 
         if(pathfound == 1){
-            if (findPath(GridPosition(start.x     , start.y + 1 ), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x - 1 , start.y     ), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x     , start.y - 1 ), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x + 1 , start.y     ), end, pathfound, temp)) return true;
+            if (findPath(GridPosition(start.x     , start.y + 1 ), end, pathfound, temp))
+                {path1.push_back(GridPosition(start.x     , start.y + 1));return true;}
+            if (findPath(GridPosition(start.x - 1 , start.y     ), end, pathfound, temp))
+                {path1.push_back(GridPosition(start.x - 1 , start.y    ));return true;}
+            if (findPath(GridPosition(start.x     , start.y - 1 ), end, pathfound, temp))
+                {path1.push_back(GridPosition(start.x     , start.y - 1));return true;}
+            if (findPath(GridPosition(start.x + 1 , start.y     ), end, pathfound, temp)) 
+                {path1.push_back(GridPosition(start.x + 1  , start.y    ));return true;}
         }
         if(pathfound == 2){
-            if (findPath(GridPosition(start.x     , start.y - 1 ), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x - 1 , start.y     ), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x     , start.y + 1 ), end, pathfound, temp)) return true;
-            if (findPath(GridPosition(start.x + 1 , start.y     ), end, pathfound, temp)) return true;
+            if (findPath(GridPosition(start.x     , start.y - 1 ), end, pathfound, temp))
+                {path2.push_back(GridPosition(start.x     , start.y - 1));return true;}
+            if (findPath(GridPosition(start.x - 1 , start.y     ), end, pathfound, temp)) 
+                {path2.push_back(GridPosition(start.x - 1 , start.y    ));return true;}
+            if (findPath(GridPosition(start.x     , start.y + 1 ), end, pathfound, temp))
+                {path2.push_back(GridPosition(start.x     , start.y + 1));return true;}
+            if (findPath(GridPosition(start.x + 1 , start.y     ), end, pathfound, temp))
+                {path2.push_back(GridPosition(start.x + 1 , start.y    ));return true;}
         }
         if(pathfound == 3){
             int num = (rand() % 4) + 1;
             if(num == 1){
-                if (findPath(GridPosition(start.x     , start.y + 1 ), end, pathfound, temp)) return true;
-                if (findPath(GridPosition(start.x - 1 , start.y     ),  end, pathfound, temp)) return true;
-                if (findPath(GridPosition(start.x     , start.y  -1 ), end, pathfound, temp)) return true;
-                if (findPath(GridPosition(start.x + 1 , start.y     ), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x     , start.y + 1 ), end, pathfound, temp))
+                {path1.push_back(GridPosition(start.x     , start.y + 1));return true;}
+                if (findPath(GridPosition(start.x - 1 , start.y     ), end, pathfound, temp))
+                    {path1.push_back(GridPosition(start.x - 1 , start.y    ));return true;}
+                if (findPath(GridPosition(start.x     , start.y - 1 ), end, pathfound, temp))
+                    {path1.push_back(GridPosition(start.x     , start.y - 1));return true;}
+                if (findPath(GridPosition(start.x + 1 , start.y     ), end, pathfound, temp)) 
+                    {path1.push_back(GridPosition(start.x + 1  , start.y    ));return true;}
             }
             else if(num == 2){
-                if (findPath(GridPosition(start.x     , start.y - 1 ), end, pathfound, temp)) return true;
-                if (findPath(GridPosition(start.x - 1 , start.y     ), end, pathfound, temp)) return true;
-                if (findPath(GridPosition(start.x     , start.y + 1 ), end, pathfound, temp)) return true;
-                if (findPath(GridPosition(start.x + 1 , start.y     ), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x     , start.y - 1 ), end, pathfound, temp))
+                {path2.push_back(GridPosition(start.x     , start.y - 1));return true;}
+                if (findPath(GridPosition(start.x - 1 , start.y     ), end, pathfound, temp)) 
+                    {path2.push_back(GridPosition(start.x - 1 , start.y    ));return true;}
+                if (findPath(GridPosition(start.x     , start.y + 1 ), end, pathfound, temp))
+                    {path2.push_back(GridPosition(start.x     , start.y + 1));return true;}
+                if (findPath(GridPosition(start.x + 1 , start.y     ), end, pathfound, temp))
+                    {path2.push_back(GridPosition(start.x + 1 , start.y    ));return true;}
             }    
             else{
-                if (findPath(GridPosition(start.x - 1 , start.y     ), end, pathfound, temp)) return true;
-                if (findPath(GridPosition(start.x - 1 , start.y - 1 ), end, pathfound, temp)) return true;
-                if (findPath(GridPosition(start.x     , start.y + 1 ), end, pathfound, temp)) return true;
-                if (findPath(GridPosition(start.x + 1 , start.y     ), end, pathfound, temp)) return true;
+                if (findPath(GridPosition(start.x - 1 , start.y     ), end, pathfound, temp))
+                    {path0.push_back(GridPosition(start.x - 1 , start.y    ));return true;}
+                if (findPath(GridPosition(start.x     , start.y + 1 ), end, pathfound, temp))
+                    {path0.push_back(GridPosition(start.x     , start.y + 1));return true;}
+                if (findPath(GridPosition(start.x     , start.y - 1 ), end, pathfound, temp))
+                    {path0.push_back(GridPosition(start.x     , start.y - 1));return true;}
+                if (findPath(GridPosition(start.x + 1 , start.y     ), end, pathfound, temp))
+                    {path0.push_back(GridPosition(start.x     , start.y    ));return true;}
             }        
         }
 
@@ -197,7 +227,7 @@ void Map::loadMap(int mapNumber) {
 
 int Map::getCellType(int x, int y) const {
     if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT)
-        return grid[x][y]; // ✅ consistent with grid[x][y]
+        return grid[x][y]; 
     return 1;
 }
 
@@ -209,61 +239,54 @@ int Map::getWidth() const { return WIDTH; }
 int Map::getHeight() const { return HEIGHT; }
 
 vector<GridPosition> Map::getoptimumpath (Ally * allies,int count){
-    int path1weight=0, path2weight= 0, path3weight =0;
-    vector<GridPosition> path1;
-    vector<GridPosition> path2;
-    vector<GridPosition> path3;
-    vector<GridPosition> path4;
-    for(int x = 0 ; x < WIDTH ; x++ ){
-        int j = 0;
-        for(int y = 0 ; y < HEIGHT ; y++ ){
-            if(temp1[x][y] == 3){
-                path1.push_back(GridPosition(x,y));
-                for(int j =0 ; j < count ; j++){
-                    if(allies[j].isInRange(GridPosition(x,y))){
-                        path1weight += 10;
-                    }
-                }
-                path1weight += 1;
-                path1.push_back(GridPosition(x,y));
-            }
-
-            if(temp2[x][y] == 3){
-                path2.push_back(GridPosition(x,y));
-                for(int j =0 ; j < count ; j++){
-                    if(allies[j].isInRange(GridPosition(x,y))){
-                        path2weight += 10;
-                    }
-                }
-                path2weight += 1;
-                path2.push_back(GridPosition(x,y));
-            }
-
-            if(temp3[x][y] == 3){
-                path3.push_back(GridPosition(x,y));
-                for(int j =0 ; j < count ; j++){
-                    if(allies[j].isInRange(GridPosition(x,y))){
-                        path3weight += 10;
-                    }
-                }
-                path3weight += 1;
-                path3.push_back(GridPosition(x,y));
+    int path0weight=0, path1weight= 0, path2weight =0;
+    vector<GridPosition> result;
+    for(int i = 0 ; i < path0.size() ; i++ ){
+        GridPosition pos0 = path0.at(i);
+        path0weight++;
+        for(int j = 0; j< count ; j ++){
+            //abs to ignore sign
+            if(abs(allies[j].getPosition().x - pos0.x) < 2 && abs(allies[j].getPosition().y - pos0.y) < 2 && allies[j].isInRange(pos0)){
+                path0weight += 100;
+                cout<<"ally weight added to path 0"<<endl;
             }
         }
-        
     }
+    for(int i = 0 ; i < path1.size() ; i++ ){
+        GridPosition pos1 = path1.at(i);
+        path1weight ++;
+        for(int j = 0; j< count ; j ++){
+            if(abs(allies[j].getPosition().x - pos1.x) < 2 && abs(allies[j].getPosition().y - pos1.y) < 2 && allies[j].isInRange(pos1)){
+                path1weight += 100;
+                cout<<"ally weight added to path 1"<<endl;
+            }
+        }
+    }
+    for(int i = 0 ; i < path2.size() ; i++ ){
+        GridPosition pos2 = path2.at(i);
+        path2weight ++;
+        for(int j = 0; j< count ; j ++){
+            if(abs(allies[j].getPosition().x - pos2.x) < 2 && abs(allies[j].getPosition().y - pos2.y) < 2 && allies[j].isInRange(pos2)){
+                path2weight += 100;
+                cout<<"ally weight added to path 2"<<endl;
+            }
+        }
+    }
+    cout<<"path 0 "<< path0weight<<endl;
     cout<<"path 1 "<< path1weight<<endl;
-    cout<<"path 2 "<<path2weight<<endl;
-    cout<<"path 3 "<<path3weight<<endl;
-    if(path1weight <= path2weight && path1weight < path3weight){
-        cout<<"choosen path 1 "<< path1weight<<endl;
-        return path1;
+    cout<<"path 2 "<< path2weight<<endl;
+    if(path0weight < path1weight && path0weight < path2weight){
+        cout<<"choosen path 0 "<< path0weight<<endl;
+        result = path0;
     }
-    else if(path2weight <= path3weight && path2weight < path1weight){
-        cout<<"choosen path 2 "<<path2weight<<endl;
-        return path2;
+    else if(path2weight < path0weight && path2weight < path1weight){
+        cout<<"choosen path 2 "<<path1weight<<endl;
+        result = path2;
     }
-    cout<<"choosen path 3 "<<path3weight<<endl;
-    return path3;
-
+    else{
+       cout<<"choosen path 1 "<<path1weight<<endl;
+       result = path1;
+    }
+    reverse(result.begin(), result.end());
+    return result;
 }

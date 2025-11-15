@@ -11,22 +11,22 @@ protected:
     int damage;
     double speed;
     bool isMoving;
-    GridPosition currentPosition;
+    GridPosition currentPosition , spawnposition;
     vector<GridPosition>* path;
     int pathLength;
     int currentPathIndex;
     bool isActive;
     bool reachedDojo;
+    GridPosition dojopos;
     double dTime;
     sf::Vector2f pixelPosition;
 
 public:
-    Enemy(int type, int health, int damage, double speed, GridPosition spawnPos);
+    Enemy(int type, int health, int damage, double speed, GridPosition spawnPos , GridPosition dojo);
     virtual ~Enemy();
-    
     virtual void update(double deltaTime, Map * map , Ally *allies , int count);
     void takeDamage(int amount);
-    void moveAlongPath(float deltaTime);
+    void moveAlongPath(float deltaTime, vector<vector<int>> grid);
     void setPath(vector<GridPosition> path);
     bool hasReachedDojo() const;
     bool getIsActive() const;
@@ -40,18 +40,18 @@ public:
 
 class Genin : public Enemy{                 
 public:
-    Genin(GridPosition spawnPos);
+    Genin(GridPosition spawnPos , GridPosition dojo);
     ~Genin();
 };
 
 class Chunin : public Enemy{   
 public:
-    Chunin(GridPosition spawnPos);
-    ~Chunin();
+    Chunin(GridPosition spawnPos , GridPosition dojo);
+    ~Chunin(); 
 };
 
 class Jonin : public Enemy{   
 public:
-    Jonin(GridPosition spawnPos);
+    Jonin(GridPosition spawnPos , GridPosition dojo);
     ~Jonin();
 };

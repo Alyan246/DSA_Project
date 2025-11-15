@@ -1,15 +1,15 @@
 #include "enemy.h"
 #include <cmath>
 
-Enemy::Enemy(int type, int health, int damage, double speed, GridPosition spawnPos) 
+Enemy::Enemy(int type, int health, int damage, double speed, GridPosition spawnPos , GridPosition dojo) 
     : type(type), health(health), maxHealth(health), damage(damage), speed(speed), 
       currentPosition(spawnPos), path(nullptr), isMoving(true), pathLength(0), currentPathIndex(0), 
-      isActive(true), reachedDojo(false) {
-        sf::Clock deltaClock;
+      isActive(true), reachedDojo(false) , spawnposition(spawnPos) , dojopos(dojo) {
+        sf::Clock deltaClock ;
         double dTime = deltaClock.restart().asSeconds(); 
 
-        pixelPosition.x = spawnPos.x * 40.6;  
-        pixelPosition.y = spawnPos.y * 42.2;
+        pixelPosition.x = spawnPos.x * 40;  
+        pixelPosition.y = spawnPos.y * 40;
       }
 
 Enemy::~Enemy() {
@@ -19,15 +19,17 @@ Enemy::~Enemy() {
 void Enemy::update(double deltaTime, Map * map , Ally *allies , int count) {
     if (!isActive) return;
     
-    if (path == nullptr || currentPathIndex >= pathLength) {
-        path = new vector<GridPosition>(map->getoptimumpath(allies,count));
-        pathLength = path->size();
-    }
+    // if (path == nullptr ) {
+    //     path = new vector<GridPosition>(map->getoptimumpath(allies,count));
+    //     pathLength = path->size();
+    //     cout<<"Path calculated and set"<<endl<<endl<<endl<<endl;
+    // }
     
-    if (path != nullptr && currentPathIndex < pathLength) {
-        moveAlongPath(deltaTime);
-    }
+    // path = new vector<GridPosition>(map->getoptimumpath(allies,count));
+    // pathLength = path->size();
+    moveAlongPath(deltaTime, map->getgrid());
 }
+
 
 void Enemy::takeDamage(int amount) {
     health -= amount;
@@ -37,19 +39,58 @@ void Enemy::takeDamage(int amount) {
     }
 }
 
-void Enemy::moveAlongPath(float deltaTime){
-    if(!isMoving) return;
+void Enemy::moveAlongPath(float deltaTime, vector<vector<int>> grid){
+   
+    if(!isMoving){ cout<<"Not moving"<<endl ; return ; }
 
     float moveAmount = speed * deltaTime * 2.0f;
-    pixelPosition.x -= moveAmount;
     
-    //for traversing cells through pixels (according to game logic)
-    currentPosition.x = static_cast<int>(pixelPosition.x / 40.0f);
-    currentPosition.y = static_cast<int>(pixelPosition.y / 40.0f);
+    pathLength = path->size();
+    for(int i = 0 ; i< pathLength ; i++){
+        // cout<<"Inside"<<endl;
+        GridPosition target = path->at(i);
+        // cout<<"at "<<i<<" "<<target.x<<" ,"<<target.y<<endl;
+    }
     
+    if(!path->empty() && currentPathIndex < pathLength){
+        // cout<<"PATH IS NOT EMPTY"<<endl;
+        GridPosition target = path->at(currentPathIndex);
+        int TargetPixelX = target.x * 40;
+        int TargetPixelY = target.y * 40;
+
+        float dx = TargetPixelX - pixelPosition.x;
+        float dy = TargetPixelY - pixelPosition.y;
+
+        bool reachedX = fabs(dx) <= moveAmount;
+        bool reachedY = fabs(dy) <= moveAmount;
+
+        
+
+        if (!reachedX)
+            pixelPosition.x += (dx > 0 ? moveAmount : -moveAmount);
+        else
+            pixelPosition.x = TargetPixelX;
+
+        if (!reachedY)
+            pixelPosition.y += (dy > 0 ? moveAmount : -moveAmount);
+        else
+            pixelPosition.y = TargetPixelY;
+
+        if (reachedX && reachedY)
+            currentPathIndex++;
+
+
+        currentPosition.x = round(pixelPosition.x /40);
+        currentPosition.y = round(pixelPosition.y /40);
+        
+    }
+
+
     // stop at target (left side for now)
-    if(pixelPosition.x <= 50.0f){
-        pixelPosition.x = 50.0f;
+    float xdojo = dojopos.x * 40;
+    float ydojo = dojopos.y *40;
+    if(pixelPosition.x  - dojopos.x <= 1.0f && pixelPosition.y - dojopos.y <= 1.0f ){
+
         isMoving = false;
     }
 }
@@ -57,6 +98,7 @@ void Enemy::moveAlongPath(float deltaTime){
 //commented out for future use in recursive pathfinding algorithm
 void Enemy::setPath(vector<GridPosition> enemypath) {
     path = new vector<GridPosition>( enemypath);
+    pathLength = path->size();
 }
 
 bool Enemy::hasReachedDojo() const { 
@@ -92,13 +134,13 @@ sf::Vector2f Enemy::getPixelPosition() const{
 }
 
 // Genin implementation
-Genin::Genin(GridPosition spawnPos) : Enemy(0, 50, 5 , 30.0f, spawnPos) {}
+Genin::Genin(GridPosition spawnPos , GridPosition dojo) : Enemy(0, 50, 5 , 30.0f, spawnPos , dojo) {}
 Genin::~Genin() {}
 
 // Chunin implementation
-Chunin::Chunin(GridPosition spawnPos) : Enemy(1, 100, 10, 25.0f, spawnPos) {}
+Chunin::Chunin(GridPosition spawnPos , GridPosition dojo) : Enemy(1, 100, 10, 25.0f, spawnPos , dojo) {}
 Chunin::~Chunin() {}
 
 // Jonin implementation
-Jonin::Jonin(GridPosition spawnPos) : Enemy(2, 200, 20, 20.0f, spawnPos) {}
+Jonin::Jonin(GridPosition spawnPos , GridPosition dojo) : Enemy(2, 200, 20, 20.0f, spawnPos , dojo) {}
 Jonin::~Jonin() {}
