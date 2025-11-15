@@ -40,6 +40,9 @@ void Game::initialize() {
     if(!grass.loadFromFile("images/Grass.png")){
         cout << "Failed to load grass.png\n";
     }
+    if(!Spawn.loadFromFile("images/Enemyspawn.png"));{
+        cout<<"Failed to load enemyspawn";
+    }
     if(!Soil.loadFromFile("images/Soil.png")){
         cout<<"Failed to load soil";
     }
@@ -210,7 +213,7 @@ void Game::renderMap() {
            
 
             // Draw grass texture only on grass cells (type 0)
-            if (grass.getSize().x > 0 && grass.getSize().y > 0 && (currentMap->getCellType(x,y) == 0 || currentMap->getCellType(x,y) == 2)) {
+            if (grass.getSize().x > 0 && grass.getSize().y > 0 && (currentMap->getCellType(x,y) == 0 || currentMap->getCellType(x,y) == 2 || currentMap->getCellType(x,y) == 3)) {
                 sf::Sprite groundgrass(grass);
                 groundgrass.setPosition(position);
                 sf::Vector2f GrassScale(cellWidth / grass.getSize().x, cellHeight / grass.getSize().y);
@@ -264,9 +267,11 @@ void Game::renderAlly(const Ally& ally) {
 
 void Game::renderEnemy(const Enemy& enemy) {
     sf::CircleShape shape(12);
+    
     sf::Vector2f enemyPos = enemy.getPixelPosition();
     shape.setPosition(enemyPos);
     
+
     if(enemy.getType() == 0){
         shape.setFillColor(sf::Color::White);
     } else if(enemy.getType() == 1) {
@@ -280,14 +285,21 @@ void Game::renderEnemy(const Enemy& enemy) {
 
 void Game::renderEnemyspawn() {
     
+    float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth();
+    float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight();
+    sf::Sprite spawnsprite(Spawn);
+
     sf::RectangleShape shape(sf::Vector2f(60, 60));
+
     GridPosition pos = enemyspawnpoint;
-    sf::Vector2f spawnpos(pos.x *40.1 , pos.y *40);
+    sf::Vector2f spawnpos(pos.x *39.5 , pos.y *35);
     shape.setPosition(spawnpos);
     shape.setFillColor(sf::Color::Magenta);
-
-    window.draw(shape);
-
+    sf::Vector2f spawnscale((cellWidth * 2.5) / Spawn.getSize().x, (cellHeight * 2.5) / Spawn.getSize().y);
+    spawnsprite.setPosition(spawnpos);
+    spawnsprite.setScale(spawnscale);
+    
+    window.draw(spawnsprite);
 }
 
 void Game::renderDojo() {
