@@ -33,38 +33,120 @@ void Ally::setPosition(GridPosition newPos){
 }
 
 // Samurai implementation
-Samurai::Samurai(GridPosition pos) : Ally(0, 10, 1, 1.0f, pos), health(100), maxHealth(100){}
+Samurai::Samurai(GridPosition pos) : Ally(0, 10, 1, 1.0f, pos), health(100), maxHealth(100),
+currentTarget(nullptr), isMoving(false){}
 
 Samurai::~Samurai() {}
 
-void Samurai::update(float deltaTime, Enemy** enemies, int enemyCount){
-    if (!isActive) return;
+void Samurai::update(float deltaTime, Enemy** enemies, int enemyCount, Ally** allies, int allyCount){
+    if(!isActive)return;
     
     attackCooldown -= deltaTime;
     
-    // Find closest enemy in range
-    Enemy* closestEnemy = nullptr;
-    float closestDistance = range + 1;
+    if(!currentTarget || !currentTarget->getIsActive()){
+        findClosestTarget(enemies, enemyCount);
+    }
+
+    if(currentTarget && currentTarget->getIsActive()){
+        if(isInAttackRange()){
+            isMoving = false;
+            if(attackCooldown <= 0.0f){
+                attack(currentTarget);
+                attackCooldown = 1.0f / attackSpeed;
+            }
+        } 
+        else{
+            isMoving = true;
+            moveToTarget(deltaTime, allies, allyCount);
+        }
+    }
+}
+
+void Samurai::findClosestTarget(Enemy** enemies, int enemyCount){
+    currentTarget = nullptr;
+    float closestDistance = std::numeric_limits<float>::max(); //tis is the biggest float value
     
-    for (int i = 0; i< enemyCount; i++) {
-        if (enemies[i] && enemies[i]->getIsActive()){
-            if (isInRange(enemies[i]->getPosition())){
-                int dx = std::abs(position.x - enemies[i]->getPosition().x);
-                int dy = std::abs(position.y - enemies[i]->getPosition().y);
-                float distance = std::sqrt(dx*dx + dy*dy);
-                
-                if(distance < closestDistance){
-                    closestDistance = distance;
-                    closestEnemy = enemies[i];
-                }
+    for(int i = 0; i < enemyCount; i++){
+        if(enemies[i] && enemies[i]->getIsActive()){
+            sf::Vector2f enemyPos = enemies[i]->getPixelPosition();
+            float dx = pixelPos.x - enemyPos.x;
+            float dy = pixelPos.y - enemyPos.y;
+            float distance = std::sqrt(dx*dx + dy*dy);
+            
+            if(distance < closestDistance){
+                closestDistance = distance;
+                currentTarget = enemies[i];
             }
         }
     }
     
-    if(closestEnemy && attackCooldown <= 0.0f){
-        attack(closestEnemy);
-        attackCooldown = 1.0f / attackSpeed;
+    if(currentTarget){
+        isMoving = true;
     }
+}
+
+void Samurai::moveToTarget(float deltaTime, Ally** allies, int allyCount){
+    if (!currentTarget || !isMoving) return;
+    
+    sf::Vector2f targetPos = currentTarget->getPixelPosition();
+    sf::Vector2f direction = targetPos - pixelPos;
+    float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+    
+    
+    if(distance <= 45.0f){
+        isMoving = false;
+        return;
+    }
+    
+    if(distance > 0){
+        direction.x /= distance;
+        direction.y /= distance;
+    }
+    
+    float moveSpeed = 60.0f; 
+    float moveAmount = moveSpeed * deltaTime;
+    
+    if(moveAmount > distance - 45.0f){
+        moveAmount = distance - 45.0f;
+    }
+    
+    sf::Vector2f newPosition = pixelPos;
+    newPosition.x += direction.x * moveAmount;
+    newPosition.y += direction.y * moveAmount;
+
+    if(!currentTarget->hasReachedDojo()){
+        if(!wouldCollide(newPosition, allies, allyCount)) pixelPos = newPosition;
+    }
+    else{
+        pixelPos = newPosition;
+    }
+}
+
+bool Samurai::wouldCollide(const sf::Vector2f& newPos, Ally** allies, int allyCount) const{
+    for(int i = 0; i < allyCount; i++){
+        if(allies[i] && allies[i] != this && allies[i]->getIsActive()){
+            sf::Vector2f otherPos = allies[i]->getPixelPos();
+            float dx = newPos.x - otherPos.x;
+            float dy = newPos.y - otherPos.y;
+            float dist = std::sqrt(dx*dx + dy*dy);
+            
+            if(dist < 5.0f){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool Samurai::isInAttackRange() const{
+    if(!currentTarget) return false;
+    
+    sf::Vector2f targetPos = currentTarget->getPixelPosition();
+    float dx = pixelPos.x - targetPos.x;
+    float dy = pixelPos.y - targetPos.y;
+    float distance = std::sqrt(dx*dx + dy*dy);
+    
+    return distance <= 45.0f;
 }
 
 void Samurai::attack(Enemy* target) {
@@ -114,7 +196,7 @@ bool ArcherTower::isInRange(const Enemy* enemy) const{
     int dx = std::abs(position.x - enemyPos.x);
     int dy = std::abs(position.y - enemyPos.y);
     
-    // 5 block radius in all directions
+    // 2 block radius in all directions
     return (dx <= 2 && dy <= 2);
 }
 
@@ -158,7 +240,7 @@ void ArcherTower::cleanupQueue(){
     enemyQueue = std::move(tempQueue);
 }
 
-void ArcherTower::update(float deltaTime, Enemy** enemies, int enemyCount){
+void ArcherTower::update(float deltaTime, Enemy** enemies, int enemyCount, Ally** allies = nullptr, int allyCount =0){
     if(!isActive) return;
     
     attackCooldown -= deltaTime;

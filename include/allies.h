@@ -9,7 +9,7 @@
 
 #define MAX_ARROWS 20
 
-class Ally {
+class Ally{
 protected:
     int type;
     int damage;
@@ -24,7 +24,7 @@ public:
     Ally(int type, int damage, int range, float attackSpeed, GridPosition pos);
     virtual ~Ally();
     
-    virtual void update(float deltaTime, Enemy** enemies, int enemyCount) = 0;
+    virtual void update(float deltaTime, Enemy** enemies, int enemyCount, Ally** allies = nullptr, int allyCount = 0) = 0;
     virtual void attack(Enemy* target) = 0;
     bool isInRange(const GridPosition& targetPos) const;
     int getType() const;
@@ -38,16 +38,23 @@ class Samurai : public Ally {
 private:
     int health;
     int maxHealth;
+    Enemy* currentTarget;
+    bool isMoving;
+    
 
 public:
     Samurai(GridPosition pos);
     ~Samurai();
     
-    void update(float deltaTime, Enemy** enemies, int enemyCount) override;
+    void update(float deltaTime, Enemy** enemies, int enemyCount, Ally** allies, int allyCount) override;
     void attack(Enemy* target) override;
     void takeDamage(int damage);
     int getHealth() const;
     int getMaxHealth() const;
+    void findClosestTarget(Enemy** enemies, int enemyCount);
+    void moveToTarget(float deltaTime, Ally** allies, int allyCount);
+    bool wouldCollide(const sf::Vector2f& newPos, Ally** allies, int allyCount) const;
+    bool isInAttackRange() const;
 };
 
 class ArcherTower : public Ally{
@@ -56,7 +63,7 @@ private:
     float arrowSpeed;
     int arrowCount;
 
-    //priority queue decleration
+    //priority queue declaration
     std::priority_queue<Enemy*, std::vector<Enemy*>, 
         std::function<bool(Enemy*, Enemy*)>> enemyQueue;
 
@@ -64,7 +71,7 @@ public:
     ArcherTower(GridPosition pos);
     ~ArcherTower();
     
-    void update(float deltaTime, Enemy** enemies, int enemyCount) override;
+    void update(float deltaTime, Enemy** enemies, int enemyCount, Ally** allies, int allyCount) override;
     void attack(Enemy* target) override;
     void spawnArrow(Enemy* target);
     class Arrow** getArrows();
