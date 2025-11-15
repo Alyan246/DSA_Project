@@ -28,8 +28,11 @@ void Game::initialize() {
     if (!font.openFromFile("assets/font.ttf")) {
         std::cout << "Failed to load font, using default" << std::endl;
     }
-    
+
     // Initialize map and dojo
+    if(!Dojotexture.loadFromFile("images/Dojo.png")){
+        cout <<"Failed to load dojo.png";
+    }
     if (!boundarytree.loadFromFile("images/Boundary.png")) 
         {cout << "Failed to load tree.png\n";}
     if (!obstacletree.loadFromFile("images/Obstacle.png")) 
@@ -276,7 +279,7 @@ void Game::renderEnemy(const Enemy& enemy) {
 }
 
 void Game::renderEnemyspawn() {
-
+    
     sf::RectangleShape shape(sf::Vector2f(60, 60));
     GridPosition pos = enemyspawnpoint;
     sf::Vector2f spawnpos(pos.x *40.1 , pos.y *40);
@@ -289,18 +292,21 @@ void Game::renderEnemyspawn() {
 
 void Game::renderDojo() {
     if (!playerDojo) return;
-    
-    sf::RectangleShape shape(sf::Vector2f(60, 60));
+
+    float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth();
+    float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight();
+
+    sf::Sprite dojosprite(Dojotexture);
     GridPosition pos = playerDojo->getPosition();
     sf::Vector2f dojopos(pos.x * 35 , pos.y *40 );
-    shape.setPosition(dojopos);
-    shape.setFillColor(sf::Color(0, 100, 0));
-    window.draw(shape);
-    
+    sf::Vector2f dojoscale((cellWidth * 1.5) / Dojotexture.getSize().x, (cellHeight * 1.5) / Dojotexture.getSize().y);
+    dojosprite.setPosition(dojopos);
+    dojosprite.setScale(dojoscale);
+    window.draw(dojosprite);
     // Health bar
     float healthPercent = playerDojo->getHealthPercentage();
     sf::RectangleShape healthBar(sf::Vector2f(60 * healthPercent, 5));
-    sf::Vector2f healthBarpos(pos.x * 35 , pos.y*39 );
+    sf::Vector2f healthBarpos(pos.x * 35 , pos.y*37 );
     healthBar.setPosition(healthBarpos);
     healthBar.setFillColor(sf::Color::Green);
     window.draw(healthBar);
