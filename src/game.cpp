@@ -119,7 +119,7 @@ void Game::update(float deltaTime) {
     // Update allies
     for(int i = 0; i < allyCount; i++) {
         if(allies[i] && allies[i]->getIsActive()) {
-            allies[i]->update(deltaTime, enemies, enemyCount);
+            allies[i]->update(deltaTime, enemies, enemyCount, allies, allyCount);
         }
     }
 }
@@ -198,11 +198,10 @@ void Game::renderMap() {
 
 void Game::renderAlly(const Ally& ally) {
     sf::CircleShape shape(15);
-    GridPosition pos = ally.getPosition();
-    sf::Vector2f allypos(pos.x * 40.0f + 5.0f, pos.y * 40.0f + 5.0f);
-    shape.setPosition(allypos);
+    sf::Vector2f allyPos = ally.getPixelPos();
+    shape.setPosition(allyPos);
 
-    if(ally.getType() == 0) {
+    if(ally.getType() == 0){
         shape.setFillColor(sf::Color::Blue);
     } else {
         shape.setFillColor(sf::Color::Red);

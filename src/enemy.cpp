@@ -92,6 +92,7 @@ void Enemy::moveAlongPath(float deltaTime, vector<vector<int>> grid){
     if(pixelPosition.x  - dojopos.x <= 1.0f && pixelPosition.y - dojopos.y <= 1.0f ){
 
         isMoving = false;
+        reachedDojo = true;
     }
 }
 
