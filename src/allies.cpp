@@ -97,7 +97,7 @@ void Samurai::moveToTarget(float deltaTime, Ally** allies, int allyCount){
     float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
     
     
-    if(distance <= 45.0f){
+    if(distance <= 55.0f){
         isMoving = false;
         return;
     }
@@ -150,7 +150,7 @@ bool Samurai::isInAttackRange() const{
     float dy = pixelPos.y - targetPos.y;
     float distance = std::sqrt(dx*dx + dy*dy);
     
-    return distance <= 45.0f;
+    return distance <= 55.0f;
 }
 
 void Samurai::attack(Enemy* target) {

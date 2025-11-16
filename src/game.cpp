@@ -30,7 +30,13 @@ void Game::initialize() {
     }
 
     // Initialize map and dojo
-    if(!SamuraiSheet.loadFromFile("images/SamuraiRunning.png")){
+    if(!SamuraiStanding.loadFromFile("images/SamuraiStanding.png")){
+        cout<<"SamuraiStanding failed to load";
+    }
+    if(!SamuraiAttacking.loadFromFile("images/SamuraiAttacking.png")){
+        cout<<"Failed to load samurai attack";
+    }
+    if(!SamuraiRunning.loadFromFile("images/SamuraiRunning.png")){
         cout<<"Failed to load samurai";
     }
     if(!Arrowtexture.loadFromFile("images/Arrow.png")){
@@ -286,55 +292,73 @@ void Game::renderAlly(const Ally& ally) {
     
     sf::Vector2f allyPos = ally.getPixelPos();
 
-    if(ally.getType() == 3){  // Samurai
-        const Samurai* samurai = dynamic_cast<const Samurai*>(&ally);
+    if(ally.getType() == 0){  // Samurai
+        // Remove const to call non-const methods
+        Samurai* warrior = const_cast<Samurai*>(dynamic_cast<const Samurai*>(&ally));
         
-        sf::Sprite Samuraisprite(SamuraiSheet);
+        if(!warrior) return;
         
-        int columns = 4;
-        int rows = 4;
-        int spriteIndex = 14;  // Or choose based on samurai->isrunning()
-        
-        int col = spriteIndex % columns;  // 14 % 4 = 2
-        int row = spriteIndex / columns;  // 14 / 4 = 3
-        
-        int spriteWidth = 150;   
-        int spriteHeight = 150;
-        
-        // SFML 3.0 syntax with Vector2
-        Samuraisprite.setTextureRect(sf::IntRect(
-            sf::Vector2i(col * spriteWidth, row * spriteHeight),  // position
-            sf::Vector2i(spriteWidth*2, spriteHeight*2)               // size
-        ));
-        
-        Samuraisprite.setPosition(allyPos);
-        
-        // Scale based on cell size
-        float scale = (cellWidth * 1.5) / spriteWidth;
-        Samuraisprite.setScale(sf::Vector2f(scale, scale));
-        
-        window.draw(Samuraisprite);
-        
-    
-    } 
-
-    if(ally.getType() == 0){
-        sf::Vector2f allyPos = ally.getPixelPos();
-            sf::Sprite SamuraiSprite(SamuraiSheet);
+        // Check if attacking first
+        if(warrior->isInAttackRange()) {
+            // ATTACKING ANIMATION
+            sf::Sprite Samuraisprite(SamuraiAttacking);
+            
+            int columns = 4;
+            int rows = 1;
+            
+            // Animation timing (you need a better way - see below)
+            static float animationTime = 0.0f;
+            static int currentFrame = 0;
+            
+            animationTime += 0.02f;
+            
+            if(animationTime >= 0.15f) {
+                currentFrame = (currentFrame + 1) % 4;
+                animationTime = 0.0f;  // FIX: Was 10.0f!
+            }
+            
+            int col = currentFrame % columns;
+            int row = currentFrame / columns;
+            
+            int spriteWidth = static_cast<int>(SamuraiAttacking.getSize().x) / columns;
+            int spriteHeight = static_cast<int>(SamuraiAttacking.getSize().y) / rows;
+            
+            Samuraisprite.setTextureRect(sf::IntRect(
+                sf::Vector2i(col * spriteWidth, row * spriteHeight),
+                sf::Vector2i(spriteWidth, spriteHeight)
+            ));
+            
+            Samuraisprite.setPosition(allyPos);
+            
+            float scale = (cellWidth * 1.5) / spriteWidth;
+            Samuraisprite.setScale(sf::Vector2f(scale, scale));
+            
+            window.draw(Samuraisprite);  // FIX: Actually draw it!
+            
+        } else if(warrior->isrunning()) {
+            // RUNNING
+            sf::Sprite SamuraiSprite(SamuraiRunning);
             SamuraiSprite.setPosition(allyPos);
-            sf::Vector2f Samuraiscale((cellWidth * 1.5) / SamuraiSheet.getSize().x, (cellHeight * 1.5) / SamuraiSheet.getSize().y);
-            SamuraiSprite.setScale(Samuraiscale);
+            float scale = (cellWidth * 1.5) / SamuraiRunning.getSize().x;
+            SamuraiSprite.setScale(sf::Vector2f(scale, scale));
             window.draw(SamuraiSprite);
-    }
-
-    else {  // Archer Tower
+            
+        } else {
+            // STANDING/IDLE
+            sf::Sprite SamuraiSprite(SamuraiStanding);
+            SamuraiSprite.setPosition(allyPos);
+            float scale = (cellWidth * 1.5) / SamuraiStanding.getSize().x;
+            SamuraiSprite.setScale(sf::Vector2f(scale, scale));
+            window.draw(SamuraiSprite);
+        }
+        
+    } else {  // Archer Tower
         sf::CircleShape shape(15);
         shape.setPosition(allyPos);
         shape.setFillColor(sf::Color::Red);
         window.draw(shape);
     }
 }
-
 void Game::renderEnemy(const Enemy& enemy) {
     sf::CircleShape shape(12);
     

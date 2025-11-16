@@ -31,8 +31,9 @@ private:
     sf::Texture Dojotexture;
     sf::Texture Spawn;
     sf::Texture Arrowtexture;
-    sf::Texture SamuraiSheet;
-    
+    sf::Texture SamuraiRunning;
+    sf::Texture SamuraiAttacking;
+    sf::Texture SamuraiStanding;
     float spawnTimer;              
     float spawnInterval;            
     int enemiesToSpawn;      
