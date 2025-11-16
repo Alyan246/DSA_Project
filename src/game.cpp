@@ -30,7 +30,7 @@ void Game::initialize() {
     }
 
     // Initialize map and dojo
-    if(!SamuraiSheet.loadFromFile("images/Samurai.png")){
+    if(!SamuraiSheet.loadFromFile("images/SamuraiRunning.png")){
         cout<<"Failed to load samurai";
     }
     if(!Arrowtexture.loadFromFile("images/Arrow.png")){
@@ -174,6 +174,30 @@ void Game::render() {
     window.display();
 }
 
+
+void Game::renderDojo() {
+    if (!playerDojo) return;
+
+    float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth();
+    float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight();
+
+    sf::Sprite dojosprite(Dojotexture);
+    GridPosition pos = playerDojo->getPosition();
+    sf::Vector2f dojopos(pos.x * 35 , pos.y *40 );
+    sf::Vector2f dojoscale((cellWidth * 1.5) / Dojotexture.getSize().x, (cellHeight * 1.5) / Dojotexture.getSize().y);
+    dojosprite.setPosition(dojopos);
+    dojosprite.setScale(dojoscale);
+    window.draw(dojosprite);
+    // Health bar
+    float healthPercent = playerDojo->getHealthPercentage();
+    sf::RectangleShape healthBar(sf::Vector2f(60 * healthPercent, 5));
+    sf::Vector2f healthBarpos(pos.x * 35 , pos.y*37 );
+    healthBar.setPosition(healthBarpos);
+    healthBar.setFillColor(sf::Color::Green);
+    window.draw(healthBar);
+}
+
+
 void Game::renderMap() {
     if (!currentMap) return;
 
@@ -260,30 +284,55 @@ void Game::renderAlly(const Ally& ally) {
     float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth();
     float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight();
     
-    sf::CircleShape shape(15);
     sf::Vector2f allyPos = ally.getPixelPos();
-    shape.setPosition(allyPos);
+
+    if(ally.getType() == 3){  // Samurai
+        const Samurai* samurai = dynamic_cast<const Samurai*>(&ally);
+        
+        sf::Sprite Samuraisprite(SamuraiSheet);
+        
+        int columns = 4;
+        int rows = 4;
+        int spriteIndex = 14;  // Or choose based on samurai->isrunning()
+        
+        int col = spriteIndex % columns;  // 14 % 4 = 2
+        int row = spriteIndex / columns;  // 14 / 4 = 3
+        
+        int spriteWidth = 150;   
+        int spriteHeight = 150;
+        
+        // SFML 3.0 syntax with Vector2
+        Samuraisprite.setTextureRect(sf::IntRect(
+            sf::Vector2i(col * spriteWidth, row * spriteHeight),  // position
+            sf::Vector2i(spriteWidth*2, spriteHeight*2)               // size
+        ));
+        
+        Samuraisprite.setPosition(allyPos);
+        
+        // Scale based on cell size
+        float scale = (cellWidth * 1.5) / spriteWidth;
+        Samuraisprite.setScale(sf::Vector2f(scale, scale));
+        
+        window.draw(Samuraisprite);
+        
+    
+    } 
 
     if(ally.getType() == 0){
-        const Samurai* samurai = dynamic_cast<const Samurai*>(&ally);
-        if(samurai && samurai->isrunning()) {
-            sf::Sprite Samurai(SamuraiSheet);
-            Samurai.setPosition(allyPos);
-            int spriteindex = 14;
-            int col = spriteindex % 4;
-            int row = spriteindex / 4;
-           // Samurai.setTextureRect(sf::IntRect(col * SamuraiSheet.getSize().x/4 , row * SamuraiSheet.getSize().y/4,sheetSize.x / columns,sheetSize.y / rows  ));
-
-           // Samurai.setScale((cellWidth)/SamuraiSheet[])
-            shape.setFillColor(sf::Color::Blue);  // Moving
-        } else {
-            shape.setFillColor(sf::Color::Cyan);  // Stationary/Attacking
-        }
-    } else {
-        shape.setFillColor(sf::Color::Red);
+        sf::Vector2f allyPos = ally.getPixelPos();
+            sf::Sprite SamuraiSprite(SamuraiSheet);
+            SamuraiSprite.setPosition(allyPos);
+            sf::Vector2f Samuraiscale((cellWidth * 1.5) / SamuraiSheet.getSize().x, (cellHeight * 1.5) / SamuraiSheet.getSize().y);
+            SamuraiSprite.setScale(Samuraiscale);
+            window.draw(SamuraiSprite);
     }
-    
-    window.draw(shape);
+
+    else {  // Archer Tower
+        sf::CircleShape shape(15);
+        shape.setPosition(allyPos);
+        shape.setFillColor(sf::Color::Red);
+        window.draw(shape);
+    }
 }
 
 void Game::renderEnemy(const Enemy& enemy) {
@@ -323,27 +372,6 @@ void Game::renderEnemyspawn() {
     window.draw(spawnsprite);
 }
 
-void Game::renderDojo() {
-    if (!playerDojo) return;
-
-    float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth();
-    float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight();
-
-    sf::Sprite dojosprite(Dojotexture);
-    GridPosition pos = playerDojo->getPosition();
-    sf::Vector2f dojopos(pos.x * 35 , pos.y *40 );
-    sf::Vector2f dojoscale((cellWidth * 1.5) / Dojotexture.getSize().x, (cellHeight * 1.5) / Dojotexture.getSize().y);
-    dojosprite.setPosition(dojopos);
-    dojosprite.setScale(dojoscale);
-    window.draw(dojosprite);
-    // Health bar
-    float healthPercent = playerDojo->getHealthPercentage();
-    sf::RectangleShape healthBar(sf::Vector2f(60 * healthPercent, 5));
-    sf::Vector2f healthBarpos(pos.x * 35 , pos.y*37 );
-    healthBar.setPosition(healthBarpos);
-    healthBar.setFillColor(sf::Color::Green);
-    window.draw(healthBar);
-}
 
 void Game::renderUI() {
     sf::Text text(font,"",20);
