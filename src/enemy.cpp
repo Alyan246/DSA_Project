@@ -24,7 +24,7 @@ void Enemy::update(double deltaTime, Map * map , Ally *allies , int count) {
     if (!isActive) return;
     
     animationTimer += deltaTime;
-    if(animationTimer >= 0.3f) {
+    if(animationTimer >= 0.4f) {
         currentAnimFrame = (currentAnimFrame + 1) % 5;
         animationTimer = 0.0f;
     }

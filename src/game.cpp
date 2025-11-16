@@ -391,7 +391,7 @@ void Game::renderEnemy(const Enemy& enemy) {
         
         Enemysprite.setPosition(enemyPos);
         
-        float scale = (cellWidth * 1.5) / spriteWidth;
+        float scale = (cellWidth * 2.5) / spriteWidth;
         Enemysprite.setScale(sf::Vector2f(-scale, scale));
         
         window.draw(Enemysprite);
