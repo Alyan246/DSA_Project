@@ -24,7 +24,7 @@ void Enemy::update(double deltaTime, Map * map , Ally *allies , int count) {
     if (!isActive) return;
     
     animationTimer += deltaTime;
-    if(animationTimer >= 0.4f) {
+    if(animationTimer >= 0.6f) {
         currentAnimFrame = (currentAnimFrame + 1) % 5;
         animationTimer = 0.0f;
     }
@@ -90,13 +90,17 @@ void Enemy::moveAlongPath(float deltaTime, vector<vector<int>> grid){
 
 
     // stop at target (left side for now)
-    float xdojo = dojopos.x * 40;
-    float ydojo = dojopos.y *40;
-    if(pixelPosition.x  - dojopos.x <= 1.0f && pixelPosition.y - dojopos.y <= 1.0f ){
+    float dojoPixelX = dojopos.x * 40 + 20;  // Center of dojo cell
+    float dojoPixelY = dojopos.y * 40 + 20;
+    float dx = pixelPosition.x - dojoPixelX;
+    float dy = pixelPosition.y - dojoPixelY;
+    float distanceToDojo = std::sqrt(dx*dx + dy*dy);
 
-        isMoving = false;
-        reachedDojo = true;
-    }
+    // Stop when within 60 pixels of dojo center (adjust this value)
+    if(distanceToDojo <= 60.0f){
+    isMoving = false;
+    reachedDojo = true;
+}
 }
 
 //commented out for future use in recursive pathfinding algorithm

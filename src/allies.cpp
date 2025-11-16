@@ -43,9 +43,30 @@ bool Samurai::isrunning() const{
 }
 
 void Samurai::update(float deltaTime, Enemy** enemies, int enemyCount, Ally** allies, int allyCount){
-    if(!isActive)return;
+    if(!isActive) return;
     
     attackCooldown -= deltaTime;
+    
+    
+    if(isInAttackRange()) {
+       
+        animationTimer += deltaTime;
+        if(animationTimer >= 0.15f) {  // Attack animation speed
+            currentAnimFrame = (currentAnimFrame + 1) % 4;  // 4 attack frames
+            animationTimer = 0.0f;
+        }
+    } else if(isMoving) {
+       
+        animationTimer += deltaTime;
+        if(animationTimer >= 0.1f) {  // Run animation speed
+            currentAnimFrame = (currentAnimFrame + 1) % 4;  // 4 run frames
+            animationTimer = 0.0f;
+        }
+    } else {
+        
+        currentAnimFrame = 0;
+        animationTimer = 0.0f;
+    }
     
     if(!currentTarget || !currentTarget->getIsActive()){
         findClosestTarget(enemies, enemyCount);
@@ -65,7 +86,6 @@ void Samurai::update(float deltaTime, Enemy** enemies, int enemyCount, Ally** al
         }
     }
 }
-
 void Samurai::findClosestTarget(Enemy** enemies, int enemyCount){
     currentTarget = nullptr;
     float closestDistance = std::numeric_limits<float>::max(); //tis is the biggest float value
@@ -158,6 +178,9 @@ void Samurai::attack(Enemy* target) {
         target->takeDamage(damage);
     }
 }
+
+int Samurai::getAnimationFrame() const 
+    { return currentAnimFrame; }
 
 void Samurai::takeDamage(int damage){
     health -= damage;

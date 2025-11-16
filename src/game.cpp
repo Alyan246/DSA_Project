@@ -25,10 +25,21 @@ Game::~Game() {
 
 void Game::initialize() {
     // Initialize font
+    if(!BlackRunning.loadFromFile("images/Blackninjarun.png")){
+        cout<<"Failed to load black ninja running ";
+    }
+    if(!YellowIdle.loadFromFile("images/yellowidle.png")){
+        cout<<"Failed to load yellow idle";
+    }
+    if(!Archertowertex.loadFromFile("images/ArcherTower.png")){
+        cout<<"Failed to load Archer tower";
+    }
     if (!font.openFromFile("assets/font.ttf")) {
         std::cout << "Failed to load font, using default" << std::endl;
     }
-
+    if(!Yellowrunning.loadFromFile("images/YellowninjaRun.png")){
+        cout<<"Failed to load yellow ninja running"<<endl;
+    }
     // Initialize map and dojo
     if(!Whiterunning.loadFromFile("images/WhiteRun.png")){
         cout<<"Failed to load white run";
@@ -294,7 +305,8 @@ void Game::renderAlly(const Ally& ally) {
     float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight();
     
     sf::Vector2f allyPos = ally.getPixelPos();
-
+    allyPos.y -= 10;
+    
     if(ally.getType() == 0){  // Samurai
         // Remove const to call non-const methods
         Samurai* warrior = const_cast<Samurai*>(dynamic_cast<const Samurai*>(&ally));
@@ -333,7 +345,7 @@ void Game::renderAlly(const Ally& ally) {
             
             Samuraisprite.setPosition(allyPos);
             
-            float scale = (cellWidth * 1.5) / spriteWidth;
+            float scale = (cellWidth * 2) / spriteWidth;
             Samuraisprite.setScale(sf::Vector2f(scale, scale));
             
             window.draw(Samuraisprite);  // FIX: Actually draw it!
@@ -342,7 +354,7 @@ void Game::renderAlly(const Ally& ally) {
             // RUNNING
             sf::Sprite SamuraiSprite(SamuraiRunning);
             SamuraiSprite.setPosition(allyPos);
-            float scale = (cellWidth * 1.5) / SamuraiRunning.getSize().x;
+            float scale = (cellWidth * 2) / SamuraiRunning.getSize().x;
             SamuraiSprite.setScale(sf::Vector2f(scale, scale));
             window.draw(SamuraiSprite);
             
@@ -356,10 +368,11 @@ void Game::renderAlly(const Ally& ally) {
         }
         
     } else {  // Archer Tower
-        sf::CircleShape shape(15);
-        shape.setPosition(allyPos);
-        shape.setFillColor(sf::Color::Red);
-        window.draw(shape);
+        sf::Sprite TowerSprite(Archertowertex);
+        TowerSprite.setPosition(allyPos);
+        float scale = (cellWidth * 1.5) / Archertowertex.getSize().x;
+        TowerSprite.setScale(sf::Vector2f(scale, scale));
+        window.draw(TowerSprite);
     }
 }
 
@@ -369,44 +382,105 @@ void Game::renderEnemy(const Enemy& enemy) {
     
     sf::Vector2f enemyPos = enemy.getPixelPosition();
 
+     sf::CircleShape debugCircle(8);
+    debugCircle.setPosition(enemyPos);
+    if(enemy.getType() == 0) debugCircle.setFillColor(sf::Color(255, 255, 255, 128));
+    else if(enemy.getType() == 1) debugCircle.setFillColor(sf::Color(255, 255, 0, 128));
+    else debugCircle.setFillColor(sf::Color(0, 0, 0, 128));
+    window.draw(debugCircle);
+
     if(enemy.getType() == 0){  // Genin - White ninja
-        sf::Sprite Enemysprite(Whiterunning);
+        if(enemy.getismoving()){
+            sf::Sprite Enemysprite(Whiterunning);
         
-        int columns = 5;
-        int rows = 1;
-        
-        // Use the enemy's own animation frame - no more static!
-        int currentFrame = enemy.getAnimationFrame();
-        
-        int col = currentFrame % columns;
-        int row = currentFrame / columns;
-        
-        int spriteWidth = static_cast<int>(Whiterunning.getSize().x) / columns;
-        int spriteHeight = static_cast<int>(Whiterunning.getSize().y) / rows;
-        
-        Enemysprite.setTextureRect(sf::IntRect(
-            sf::Vector2i(col * spriteWidth, row * spriteHeight),
-            sf::Vector2i(spriteWidth, spriteHeight)
-        ));
-        
-        Enemysprite.setPosition(enemyPos);
-        
-        float scale = (cellWidth * 2.5) / spriteWidth;
-        Enemysprite.setScale(sf::Vector2f(-scale, scale));
-        
-        window.draw(Enemysprite);
+            int columns = 5;
+            int rows = 1;
+            
+            // Use the enemy's own animation frame - no more static!
+            int currentFrame = enemy.getAnimationFrame();
+            
+            int col = currentFrame % columns;
+            int row = currentFrame / columns;
+            
+            int spriteWidth = static_cast<int>(Whiterunning.getSize().x) / columns;
+            int spriteHeight = static_cast<int>(Whiterunning.getSize().y) / rows;
+            
+            Enemysprite.setTextureRect(sf::IntRect(
+                sf::Vector2i(col * spriteWidth, row * spriteHeight),
+                sf::Vector2i(spriteWidth, spriteHeight)
+            ));
+            
+            Enemysprite.setPosition(enemyPos);
+            sf::Vector2f origin(spriteWidth / 2.0f, spriteHeight / 2.0f);
+            Enemysprite.setOrigin(origin);
+            float scale = (cellWidth * 2.5) / spriteWidth;
+            Enemysprite.setScale(sf::Vector2f(-scale, scale));
+            
+            window.draw(Enemysprite);
+        }
         
     } else if(enemy.getType() == 1) {
-        sf::CircleShape shape(12);
-        shape.setPosition(enemyPos);
-        shape.setFillColor(sf::Color::Yellow);
-        window.draw(shape);
-        
+         sf::Sprite Enemysprite(Yellowrunning);
+        if(enemy.getismoving()){
+            int columns = 5;
+            int rows = 1;
+            // Use the enemy's own animation frame - no more static!
+            int currentFrame = enemy.getAnimationFrame();
+            
+            int col = currentFrame % columns;
+            int row = currentFrame / columns;
+            
+            int spriteWidth = static_cast<int>(Yellowrunning.getSize().x) / columns;
+            int spriteHeight = static_cast<int>(Yellowrunning.getSize().y) / rows;
+            
+            Enemysprite.setTextureRect(sf::IntRect(
+                sf::Vector2i(col * spriteWidth, row * spriteHeight),
+                sf::Vector2i(spriteWidth, spriteHeight)
+            ));
+            
+            Enemysprite.setPosition(enemyPos);
+            
+            float scale = (cellWidth * 2.5) / spriteWidth;
+            Enemysprite.setScale(sf::Vector2f(-scale, scale));
+            sf::Vector2f origin(spriteWidth / 2.0f, spriteHeight / 2.0f);
+            Enemysprite.setOrigin(origin);
+            
+        }
+        else{
+            Enemysprite.setTexture(YellowIdle);
+            float scale = (cellWidth * 2.5) / YellowIdle.getSize().x;
+            Enemysprite.setScale(sf::Vector2f(-scale, scale));
+        }
+        window.draw(Enemysprite);
     } else {
-        sf::CircleShape shape(12);
-        shape.setPosition(enemyPos);
-        shape.setFillColor(sf::Color::Black);
-        window.draw(shape);
+         if(enemy.getismoving()){
+            sf::Sprite Enemysprite(BlackRunning);
+        
+            int columns = 5;
+            int rows = 1;
+            
+            // Use the enemy's own animation frame - no more static!
+            int currentFrame = enemy.getAnimationFrame();
+            
+            int col = currentFrame % columns;
+            int row = currentFrame / columns;
+            
+            int spriteWidth = static_cast<int>(BlackRunning.getSize().x) / columns;
+            int spriteHeight = static_cast<int>(BlackRunning.getSize().y) / rows;
+            
+            Enemysprite.setTextureRect(sf::IntRect(
+                sf::Vector2i(col * spriteWidth, row * spriteHeight),
+                sf::Vector2i(spriteWidth, spriteHeight)
+            ));
+            
+            Enemysprite.setPosition(enemyPos);
+            
+            float scale = (cellWidth * 2.5) / spriteWidth;
+            Enemysprite.setScale(sf::Vector2f(-scale, scale));
+            sf::Vector2f origin(spriteWidth / 2.0f, spriteHeight / 2.0f);
+            Enemysprite.setOrigin(origin);
+            window.draw(Enemysprite);
+        }
     }
 }
 void Game::renderEnemyspawn() {

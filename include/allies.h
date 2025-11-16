@@ -41,7 +41,8 @@ private:
     int maxHealth;
     Enemy* currentTarget;
     bool isMoving;
-    
+    float animationTimer;   
+    int currentAnimFrame;   
 
 public:
     Samurai(GridPosition pos);
@@ -58,6 +59,7 @@ public:
     void moveToTarget(float deltaTime, Ally** allies, int allyCount);
     bool wouldCollide(const sf::Vector2f& newPos, Ally** allies, int allyCount) const;
     bool isInAttackRange() const;
+    int getAnimationFrame() const;
 };
 
 class ArcherTower : public Ally{

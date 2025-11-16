@@ -35,6 +35,10 @@ private:
     sf::Texture SamuraiAttacking;
     sf::Texture SamuraiStanding;
     sf::Texture Whiterunning;
+    sf::Texture Yellowrunning;
+    sf::Texture BlackRunning;
+    sf::Texture Archertowertex;
+    sf::Texture YellowIdle;
     float spawnTimer;              
     float spawnInterval;            
     int enemiesToSpawn;      
