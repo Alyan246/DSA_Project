@@ -4,10 +4,10 @@
 Enemy::Enemy(int type, int health, int damage, double speed, GridPosition spawnPos , GridPosition dojo) 
     : type(type), health(health), maxHealth(health), damage(damage), speed(speed), 
       currentPosition(spawnPos), path(nullptr), isMoving(true), pathLength(0), currentPathIndex(0), 
-      isActive(true), reachedDojo(false) , spawnposition(spawnPos) , dojopos(dojo) {
+      isActive(true), reachedDojo(false) , spawnposition(spawnPos) , dojopos(dojo) ,animationTimer(0.0f), currentAnimFrame(0) {
         sf::Clock deltaClock ;
         double dTime = deltaClock.restart().asSeconds(); 
-
+        
         pixelPosition.x = spawnPos.x * 40;  
         pixelPosition.y = spawnPos.y * 40;
       }
@@ -16,20 +16,23 @@ Enemy::~Enemy() {
     delete[] path;
 }
 
+bool Enemy::getismoving() const{
+    return isMoving;
+}
+
 void Enemy::update(double deltaTime, Map * map , Ally *allies , int count) {
     if (!isActive) return;
     
-    // if (path == nullptr ) {
-    //     path = new vector<GridPosition>(map->getoptimumpath(allies,count));
-    //     pathLength = path->size();
-    //     cout<<"Path calculated and set"<<endl<<endl<<endl<<endl;
-    // }
-    
-    // path = new vector<GridPosition>(map->getoptimumpath(allies,count));
-    // pathLength = path->size();
+    animationTimer += deltaTime;
+    if(animationTimer >= 0.3f) {
+        currentAnimFrame = (currentAnimFrame + 1) % 5;
+        animationTimer = 0.0f;
+    }
     moveAlongPath(deltaTime, map->getgrid());
 }
 
+int Enemy::getAnimationFrame() const { 
+    return currentAnimFrame; }
 
 void Enemy::takeDamage(int amount) {
     health -= amount;

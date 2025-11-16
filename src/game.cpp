@@ -30,6 +30,9 @@ void Game::initialize() {
     }
 
     // Initialize map and dojo
+    if(!Whiterunning.loadFromFile("images/WhiteRun.png")){
+        cout<<"Failed to load white run";
+    }
     if(!SamuraiStanding.loadFromFile("images/SamuraiStanding.png")){
         cout<<"SamuraiStanding failed to load";
     }
@@ -190,14 +193,14 @@ void Game::renderDojo() {
     sf::Sprite dojosprite(Dojotexture);
     GridPosition pos = playerDojo->getPosition();
     sf::Vector2f dojopos(pos.x * 35 , pos.y *40 );
-    sf::Vector2f dojoscale((cellWidth * 1.5) / Dojotexture.getSize().x, (cellHeight * 1.5) / Dojotexture.getSize().y);
+    sf::Vector2f dojoscale((cellWidth * 3) / Dojotexture.getSize().x, (cellHeight * 3) / Dojotexture.getSize().y);
     dojosprite.setPosition(dojopos);
     dojosprite.setScale(dojoscale);
     window.draw(dojosprite);
     // Health bar
     float healthPercent = playerDojo->getHealthPercentage();
     sf::RectangleShape healthBar(sf::Vector2f(60 * healthPercent, 5));
-    sf::Vector2f healthBarpos(pos.x * 35 , pos.y*37 );
+    sf::Vector2f healthBarpos(pos.x * 52 , pos.y*40 );
     healthBar.setPosition(healthBarpos);
     healthBar.setFillColor(sf::Color::Green);
     window.draw(healthBar);
@@ -359,24 +362,53 @@ void Game::renderAlly(const Ally& ally) {
         window.draw(shape);
     }
 }
+
 void Game::renderEnemy(const Enemy& enemy) {
-    sf::CircleShape shape(12);
+    float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth();
+    float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight();
     
     sf::Vector2f enemyPos = enemy.getPixelPosition();
-    shape.setPosition(enemyPos);
-    
 
-    if(enemy.getType() == 0){
-        shape.setFillColor(sf::Color::White);
+    if(enemy.getType() == 0){  // Genin - White ninja
+        sf::Sprite Enemysprite(Whiterunning);
+        
+        int columns = 5;
+        int rows = 1;
+        
+        // Use the enemy's own animation frame - no more static!
+        int currentFrame = enemy.getAnimationFrame();
+        
+        int col = currentFrame % columns;
+        int row = currentFrame / columns;
+        
+        int spriteWidth = static_cast<int>(Whiterunning.getSize().x) / columns;
+        int spriteHeight = static_cast<int>(Whiterunning.getSize().y) / rows;
+        
+        Enemysprite.setTextureRect(sf::IntRect(
+            sf::Vector2i(col * spriteWidth, row * spriteHeight),
+            sf::Vector2i(spriteWidth, spriteHeight)
+        ));
+        
+        Enemysprite.setPosition(enemyPos);
+        
+        float scale = (cellWidth * 1.5) / spriteWidth;
+        Enemysprite.setScale(sf::Vector2f(-scale, scale));
+        
+        window.draw(Enemysprite);
+        
     } else if(enemy.getType() == 1) {
+        sf::CircleShape shape(12);
+        shape.setPosition(enemyPos);
         shape.setFillColor(sf::Color::Yellow);
+        window.draw(shape);
+        
     } else {
+        sf::CircleShape shape(12);
+        shape.setPosition(enemyPos);
         shape.setFillColor(sf::Color::Black);
+        window.draw(shape);
     }
-    
-    window.draw(shape);
 }
-
 void Game::renderEnemyspawn() {
     
     float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth();

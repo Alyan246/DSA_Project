@@ -13,6 +13,8 @@ protected:
     bool isMoving;
     GridPosition currentPosition , spawnposition;
     vector<GridPosition>* path;
+    float animationTimer;
+    int currentAnimFrame;
     int pathLength;
     int currentPathIndex;
     bool isActive;
@@ -29,12 +31,15 @@ public:
     void moveAlongPath(float deltaTime, vector<vector<int>> grid);
     void setPath(vector<GridPosition> path);
     bool hasReachedDojo() const;
+    int getAnimationFrame() const;
     bool getIsActive() const;
     GridPosition getPosition() const;
     int getType() const;
     int getHealth() const;
     int getMaxHealth() const;
     int getDamage() const;
+    bool getismoving() const;
+    
     sf::Vector2f getPixelPosition() const;
 };
 
