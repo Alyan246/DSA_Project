@@ -496,7 +496,7 @@ void Game::renderEnemy(const Enemy& enemy) {
             // NOT MOVING - use idle sprite
             Enemysprite.setTexture(BlackIdle);
             Enemysprite.setPosition(enemyPos);
-            float scale = (cellWidth * 3) / BlackIdle.getSize().x;
+            float scale = (cellWidth * 2.8) / BlackIdle.getSize().x;
             Enemysprite.setScale(sf::Vector2f(-scale, scale));
             sf::Vector2f origin(BlackIdle.getSize().x / 2.0f, BlackIdle.getSize().y / 2.0f);
             Enemysprite.setOrigin(origin);
