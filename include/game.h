@@ -39,6 +39,10 @@ private:
     sf::Texture BlackRunning;
     sf::Texture Archertowertex;
     sf::Texture YellowIdle;
+    sf::Texture titleScreen;
+    sf::Texture howToPlayScreen;
+    int currentScreen;
+    bool showTitleScreens;
     float spawnTimer;              
     float spawnInterval;            
     int enemiesToSpawn;      
@@ -84,6 +88,10 @@ public:
     void renderDojo();
     void renderUI();
     void renderArrows();
+
+    void handleTitleScreenEvents();
+    void renderTitleScreen();
+    void loadTitleScreens();
 
 
 };

@@ -6,7 +6,7 @@ Game::Game() :
                 currentMap(nullptr), playerDojo(nullptr), allies(nullptr), enemies(nullptr),
                 currentWave(0), playerResources(100), gameRunning(false), gameWon(false), gameLost(false),
                 maxAllies(50), maxEnemies(100), allyCount(0),spawnTimer(0.0f), spawnInterval(2.0f), enemiesToSpawn(20), enemiesSpawned(0), enemyCount(0), windowheight(sf::VideoMode::getDesktopMode().size.y * 0.8f), windowwidth(sf::VideoMode::getDesktopMode().size.x * 0.8f),
-                window(sf::VideoMode({static_cast<unsigned int>(sf::VideoMode::getDesktopMode().size.x * 0.8f),static_cast<unsigned int>(sf::VideoMode::getDesktopMode().size.y * 0.8f)}),"DojoDefender")
+                window(sf::VideoMode({static_cast<unsigned int>(sf::VideoMode::getDesktopMode().size.x * 0.8f),static_cast<unsigned int>(sf::VideoMode::getDesktopMode().size.y * 0.8f)}),"DojoDefender"), currentScreen(0), showTitleScreens(true)
                {
     allies = new Ally*[maxAllies];
     enemies = new Enemy*[maxEnemies];
@@ -23,7 +23,18 @@ Game::~Game() {
     cleanup();
 }
 
+void Game::loadTitleScreens(){
+    if(!titleScreen.loadFromFile("images/title_screen.png")) {
+        cout << "Failed to load title screen 1" << endl;
+    }
+    if(!howToPlayScreen.loadFromFile("images/how_to_play.png")) {
+        cout << "Failed to load title screen 2" << endl;
+    }
+}
+
 void Game::initialize() {
+    loadTitleScreens();
+
     // Initialize font
     if(!BlackRunning.loadFromFile("images/Blackninjarun.png")){
         cout<<"Failed to load black ninja running ";
@@ -89,33 +100,85 @@ void Game::run() {
     
     while(gameRunning && window.isOpen()) {
         deltaTime = clock.restart().asSeconds();
-        handleEvents();
-        update(deltaTime);
-        render();
-        checkGameOver();
+        if(showTitleScreens){
+            handleTitleScreenEvents();
+            renderTitleScreen();
+        }
+        else{
+            handleEvents();
+            update(deltaTime);
+            render();
+            checkGameOver();
+        }
     }
 }
 
+void Game::handleTitleScreenEvents(){
+    while(auto eventOpt = window.pollEvent()){
+        const sf::Event& event = *eventOpt;
+
+        if(event.is<sf::Event::Closed>()){
+            gameRunning = false;
+            window.close();
+            return;
+        }
+
+        else if(const auto* key = event.getIf<sf::Event::KeyPressed>()){
+            if (key->scancode == sf::Keyboard::Scancode::Enter) {
+                if(currentScreen == 0){
+                    currentScreen = 1;
+                } 
+                else if(currentScreen == 1){
+                    showTitleScreens = false;
+                    currentScreen = 2;
+                }
+            }
+            else if(key->scancode == sf::Keyboard::Scancode::Escape){
+                gameRunning = false;
+                window.close();
+            }
+        }
+    }
+}
+
+void Game::renderTitleScreen(){
+    window.clear(sf::Color::Black);
+    
+    sf::Sprite titleSprite(titleScreen);
+    if(currentScreen == 0){
+        titleSprite.setTexture(titleScreen);
+
+    } 
+    else{
+        titleSprite.setTexture(howToPlayScreen);
+    }
+    
+    sf::Vector2u textureSize = titleScreen.getSize();
+    sf::Vector2f scale(static_cast<float>(windowwidth) / textureSize.x, static_cast<float>(windowheight) / textureSize.y);
+    titleSprite.setScale(scale);
+    
+    window.draw(titleSprite);
+    
+    window.display();
+}
+
 void Game::handleEvents() {
-    // pollEvent() now returns std::optional<sf::Event>
     while (auto eventOpt = window.pollEvent()) {
         const sf::Event& event = *eventOpt;
 
-        // Handle window close
-        if (event.is<sf::Event::Closed>() || !window.isOpen()) {
+        if(event.is<sf::Event::Closed>() || !window.isOpen()){
             gameRunning = false;
             window.close();
         }
 
-        // Example: handle key press (Escape quits)
-        else if (const auto* key = event.getIf<sf::Event::KeyPressed>()) {
-            if (key->scancode == sf::Keyboard::Scancode::Escape) {
+        else if(const auto* key = event.getIf<sf::Event::KeyPressed>()){
+            if(key->scancode == sf::Keyboard::Scancode::Escape) {
                 gameRunning = false;
                 window.close();
             }
         }
 
-        else if (const auto* mousekey = event.getIf<sf::Event::MouseButtonPressed>()) {
+        else if(const auto* mousekey = event.getIf<sf::Event::MouseButtonPressed>()){
             if (mousekey->button == sf::Mouse::Button::Left) {
                 // Left click - Archer Tower
                 int gridX = mousekey->position.x / 40;
@@ -675,7 +738,7 @@ bool Game::canPlaceAlly(int gridX, int gridY) {
         if (allies[i] && allies[i]->getIsActive()) {
             GridPosition pos = allies[i]->getPosition();
             if (pos.x == gridX && pos.y == gridY) {
-                std::cout << "❌ Cell already has ally: " << gridX << "," << gridY << "\n";
+                std::cout << "Cell already has ally: " << gridX << "," << gridY << "\n";
                 return false;
             }
         }
