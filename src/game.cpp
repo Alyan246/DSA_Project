@@ -28,6 +28,12 @@ void Game::initialize() {
     if(!BlackRunning.loadFromFile("images/Blackninjarun.png")){
         cout<<"Failed to load black ninja running ";
     }
+    if(!WhiteIdle.loadFromFile("images/WhiteIdle.png")){
+        cout<<"Failed to load white idle";
+    }
+    if(!BlackIdle.loadFromFile("images/BlackIdle.png")){
+        cout<<"Failed to load Black idle"<<endl;
+    }
     if(!YellowIdle.loadFromFile("images/yellowidle.png")){
         cout<<"Failed to load yellow idle";
     }
@@ -305,8 +311,8 @@ void Game::renderAlly(const Ally& ally) {
     float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight();
     
     sf::Vector2f allyPos = ally.getPixelPos();
-    allyPos.y -= 10;
-    
+    allyPos.y -= 60;
+    allyPos.x -= 30;    
     if(ally.getType() == 0){  // Samurai
         // Remove const to call non-const methods
         Samurai* warrior = const_cast<Samurai*>(dynamic_cast<const Samurai*>(&ally));
@@ -345,7 +351,7 @@ void Game::renderAlly(const Ally& ally) {
             
             Samuraisprite.setPosition(allyPos);
             
-            float scale = (cellWidth * 2) / spriteWidth;
+            float scale = (cellWidth * 3) / spriteWidth;
             Samuraisprite.setScale(sf::Vector2f(scale, scale));
             
             window.draw(Samuraisprite);  // FIX: Actually draw it!
@@ -362,7 +368,7 @@ void Game::renderAlly(const Ally& ally) {
             // STANDING/IDLE
             sf::Sprite SamuraiSprite(SamuraiStanding);
             SamuraiSprite.setPosition(allyPos);
-            float scale = (cellWidth * 1.5) / SamuraiStanding.getSize().x;
+            float scale = (cellWidth * 3.5) / SamuraiStanding.getSize().x;
             SamuraiSprite.setScale(sf::Vector2f(scale, scale));
             window.draw(SamuraiSprite);
         }
@@ -382,7 +388,7 @@ void Game::renderEnemy(const Enemy& enemy) {
     
     sf::Vector2f enemyPos = enemy.getPixelPosition();
 
-     sf::CircleShape debugCircle(8);
+    sf::CircleShape debugCircle(8);
     debugCircle.setPosition(enemyPos);
     if(enemy.getType() == 0) debugCircle.setFillColor(sf::Color(255, 255, 255, 128));
     else if(enemy.getType() == 1) debugCircle.setFillColor(sf::Color(255, 255, 0, 128));
@@ -390,13 +396,11 @@ void Game::renderEnemy(const Enemy& enemy) {
     window.draw(debugCircle);
 
     if(enemy.getType() == 0){  // Genin - White ninja
-        if(enemy.getismoving()){
-            sf::Sprite Enemysprite(Whiterunning);
+        sf::Sprite Enemysprite(Whiterunning);
         
+        if(enemy.getismoving()){
             int columns = 5;
             int rows = 1;
-            
-            // Use the enemy's own animation frame - no more static!
             int currentFrame = enemy.getAnimationFrame();
             
             int col = currentFrame % columns;
@@ -415,16 +419,24 @@ void Game::renderEnemy(const Enemy& enemy) {
             Enemysprite.setOrigin(origin);
             float scale = (cellWidth * 2.5) / spriteWidth;
             Enemysprite.setScale(sf::Vector2f(-scale, scale));
-            
-            window.draw(Enemysprite);
         }
+        else{
+            // NOT MOVING - use idle sprite
+            Enemysprite.setTexture(WhiteIdle);
+            Enemysprite.setPosition(enemyPos);
+            float scale = (cellWidth * 3) / WhiteIdle.getSize().x;
+            Enemysprite.setScale(sf::Vector2f(-scale, scale));
+            sf::Vector2f origin(WhiteIdle.getSize().x / 2.0f, WhiteIdle.getSize().y / 2.0f);
+            Enemysprite.setOrigin(origin);
+        }
+        window.draw(Enemysprite);  // IMPORTANT: Draw outside if/else
         
-    } else if(enemy.getType() == 1) {
-         sf::Sprite Enemysprite(Yellowrunning);
+    } else if(enemy.getType() == 1) {  // Chunin - Yellow ninja
+        sf::Sprite Enemysprite(Yellowrunning);
+        
         if(enemy.getismoving()){
             int columns = 5;
             int rows = 1;
-            // Use the enemy's own animation frame - no more static!
             int currentFrame = enemy.getAnimationFrame();
             
             int col = currentFrame % columns;
@@ -439,27 +451,28 @@ void Game::renderEnemy(const Enemy& enemy) {
             ));
             
             Enemysprite.setPosition(enemyPos);
-            
-            float scale = (cellWidth * 2.5) / spriteWidth;
+            float scale = (cellWidth * 2.6) / spriteWidth;
             Enemysprite.setScale(sf::Vector2f(-scale, scale));
             sf::Vector2f origin(spriteWidth / 2.0f, spriteHeight / 2.0f);
             Enemysprite.setOrigin(origin);
-            
         }
         else{
+            // NOT MOVING - use idle sprite
             Enemysprite.setTexture(YellowIdle);
-            float scale = (cellWidth * 2.5) / YellowIdle.getSize().x;
+            Enemysprite.setPosition(enemyPos);
+            float scale = (cellWidth * 1.6) / YellowIdle.getSize().x;
             Enemysprite.setScale(sf::Vector2f(-scale, scale));
+            sf::Vector2f origin(YellowIdle.getSize().x / 2.0f, YellowIdle.getSize().y / 2.0f);
+            Enemysprite.setOrigin(origin);
         }
         window.draw(Enemysprite);
-    } else {
-         if(enemy.getismoving()){
-            sf::Sprite Enemysprite(BlackRunning);
         
+    } else {  // Jonin - Black ninja
+        sf::Sprite Enemysprite(BlackRunning);
+        
+        if(enemy.getismoving()){
             int columns = 5;
             int rows = 1;
-            
-            // Use the enemy's own animation frame - no more static!
             int currentFrame = enemy.getAnimationFrame();
             
             int col = currentFrame % columns;
@@ -474,15 +487,24 @@ void Game::renderEnemy(const Enemy& enemy) {
             ));
             
             Enemysprite.setPosition(enemyPos);
-            
             float scale = (cellWidth * 2.5) / spriteWidth;
             Enemysprite.setScale(sf::Vector2f(-scale, scale));
             sf::Vector2f origin(spriteWidth / 2.0f, spriteHeight / 2.0f);
             Enemysprite.setOrigin(origin);
-            window.draw(Enemysprite);
         }
+        else{
+            // NOT MOVING - use idle sprite
+            Enemysprite.setTexture(BlackIdle);
+            Enemysprite.setPosition(enemyPos);
+            float scale = (cellWidth * 3) / BlackIdle.getSize().x;
+            Enemysprite.setScale(sf::Vector2f(-scale, scale));
+            sf::Vector2f origin(BlackIdle.getSize().x / 2.0f, BlackIdle.getSize().y / 2.0f);
+            Enemysprite.setOrigin(origin);
+        }
+        window.draw(Enemysprite);
     }
 }
+
 void Game::renderEnemyspawn() {
     
     float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth();

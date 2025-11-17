@@ -90,14 +90,14 @@ void Enemy::moveAlongPath(float deltaTime, vector<vector<int>> grid){
 
 
     // stop at target (left side for now)
-    float dojoPixelX = dojopos.x * 40 + 20;  // Center of dojo cell
-    float dojoPixelY = dojopos.y * 40 + 20;
+    float dojoPixelX = dojopos.x * 40 + 40;  // Center of dojo cell
+    float dojoPixelY = dojopos.y * 40 + 40;
     float dx = pixelPosition.x - dojoPixelX;
     float dy = pixelPosition.y - dojoPixelY;
     float distanceToDojo = std::sqrt(dx*dx + dy*dy);
 
     // Stop when within 60 pixels of dojo center (adjust this value)
-    if(distanceToDojo <= 60.0f){
+    if(distanceToDojo <= 80.0f){
     isMoving = false;
     reachedDojo = true;
 }

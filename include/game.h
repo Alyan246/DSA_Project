@@ -38,7 +38,8 @@ private:
     sf::Texture Yellowrunning;
     sf::Texture BlackRunning;
     sf::Texture Archertowertex;
-    sf::Texture YellowIdle;
+    sf::Texture YellowIdle , BlackIdle , WhiteIdle;
+
     float spawnTimer;              
     float spawnInterval;            
     int enemiesToSpawn;      
