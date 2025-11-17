@@ -155,7 +155,7 @@ void Game::update(float deltaTime) {
     // Update enemies
     for(int i = 0; i < enemyCount; i++) {
         if(enemies[i] && enemies[i]->getIsActive()) {
-            enemies[i]->update(deltaTime, currentMap , *allies , allyCount);
+            enemies[i]->update(deltaTime, currentMap , allies , playerDojo, allyCount);
         }
     }
     
@@ -619,6 +619,7 @@ void Game::checkGameOver() {
     if (playerDojo->isDojoDestroyed()) {
         gameLost = true;
         gameRunning = false;
+        cout << "game over!";
     }
 }
 
