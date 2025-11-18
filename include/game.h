@@ -41,6 +41,7 @@ private:
     sf::Texture YellowIdle;
     sf::Texture titleScreen;
     sf::Texture howToPlayScreen;
+    sf::Texture BlackAttack , WhiteAttack , YellowAttack;
     int currentScreen;
     bool showTitleScreens;
     sf::Texture BlackIdle , WhiteIdle;

@@ -39,6 +39,15 @@ void Game::initialize() {
     if(!BlackRunning.loadFromFile("images/Blackninjarun.png")){
         cout<<"Failed to load black ninja running ";
     }
+    if(!BlackAttack.loadFromFile("images/BlackAttack.png")){
+        cout<<"Failed to load black attack";
+    }
+    if(!WhiteAttack.loadFromFile("images/WhiteAttack.png")){
+        cout<<"Failed to load White Attack";
+    }
+    if(!YellowAttack.loadFromFile("images/YellowAttack.png")){
+        cout<<"Failed to load Yellow attack";
+    }
     if(!WhiteIdle.loadFromFile("images/WhiteIdle.png")){
         cout<<"Failed to load white idle";
     }
@@ -460,14 +469,12 @@ void Game::renderEnemy(const Enemy& enemy) {
 
     if(enemy.getType() == 0){  // Genin - White ninja
         sf::Sprite Enemysprite(Whiterunning);
-        
-        if(enemy.getismoving()){
-            int columns = 5;
-            int rows = 1;
-            int currentFrame = enemy.getAnimationFrame();
-            
-            int col = currentFrame % columns;
-            int row = currentFrame / columns;
+        int columns = 5;
+        int rows = 1;
+        int currentFrame = enemy.getAnimationFrame();
+        int col = currentFrame % columns;
+        int row = currentFrame / columns;
+        if(enemy.getismoving() && !enemy.getisAttacking()){
             
             int spriteWidth = static_cast<int>(Whiterunning.getSize().x) / columns;
             int spriteHeight = static_cast<int>(Whiterunning.getSize().y) / rows;
@@ -483,6 +490,23 @@ void Game::renderEnemy(const Enemy& enemy) {
             float scale = (cellWidth * 2.5) / spriteWidth;
             Enemysprite.setScale(sf::Vector2f(-scale, scale));
         }
+        else if(enemy.getisAttacking() && !enemy.getismoving() ){
+            Enemysprite.setTexture(WhiteAttack);
+            int spriteWidth = static_cast<int>(WhiteAttack.getSize().x) / columns;
+            int spriteHeight = static_cast<int>(WhiteAttack.getSize().y) / rows;
+            
+            Enemysprite.setTextureRect(sf::IntRect(
+                sf::Vector2i(col * spriteWidth, row * spriteHeight),
+                sf::Vector2i(spriteWidth, spriteHeight)
+            ));
+            
+            Enemysprite.setPosition(enemyPos);
+            sf::Vector2f origin(spriteWidth / 2.0f, spriteHeight / 2.0f);
+            Enemysprite.setOrigin(origin);
+            float scale = (cellWidth * 2.5) / spriteWidth;
+            Enemysprite.setScale(sf::Vector2f(-scale, scale));
+        }
+        
         else{
             // NOT MOVING - use idle sprite
             Enemysprite.setTexture(WhiteIdle);
@@ -496,15 +520,28 @@ void Game::renderEnemy(const Enemy& enemy) {
         
     } else if(enemy.getType() == 1) {  // Chunin - Yellow ninja
         sf::Sprite Enemysprite(Yellowrunning);
-        
-        if(enemy.getismoving()){
-            int columns = 5;
-            int rows = 1;
-            int currentFrame = enemy.getAnimationFrame();
+        int columns = 5;
+        int rows = 1;
+        int currentFrame = enemy.getAnimationFrame();
+        int col = currentFrame % columns;
+        int row = currentFrame / columns;
+        if(enemy.getisAttacking() && !enemy.getismoving()){
+            Enemysprite.setTexture(YellowAttack);
+            int spriteWidth = static_cast<int>(YellowAttack.getSize().x) / columns;
+            int spriteHeight = static_cast<int>(YellowAttack.getSize().y) / rows;
             
-            int col = currentFrame % columns;
-            int row = currentFrame / columns;
+            Enemysprite.setTextureRect(sf::IntRect(
+                sf::Vector2i(col * spriteWidth, row * spriteHeight),
+                sf::Vector2i(spriteWidth, spriteHeight)
+            ));
             
+            Enemysprite.setPosition(enemyPos);
+            float scale = (cellWidth * 2.6) / spriteWidth;
+            Enemysprite.setScale(sf::Vector2f(-scale, scale));
+            sf::Vector2f origin(spriteWidth / 2.0f, spriteHeight / 2.0f);
+            Enemysprite.setOrigin(origin);
+        }
+        else if(enemy.getismoving() && !enemy.getisAttacking()){
             int spriteWidth = static_cast<int>(Yellowrunning.getSize().x) / columns;
             int spriteHeight = static_cast<int>(Yellowrunning.getSize().y) / rows;
             
@@ -519,6 +556,7 @@ void Game::renderEnemy(const Enemy& enemy) {
             sf::Vector2f origin(spriteWidth / 2.0f, spriteHeight / 2.0f);
             Enemysprite.setOrigin(origin);
         }
+        
         else{
             // NOT MOVING - use idle sprite
             Enemysprite.setTexture(YellowIdle);
@@ -532,14 +570,12 @@ void Game::renderEnemy(const Enemy& enemy) {
         
     } else {  // Jonin - Black ninja
         sf::Sprite Enemysprite(BlackRunning);
-        
-        if(enemy.getismoving()){
             int columns = 5;
             int rows = 1;
             int currentFrame = enemy.getAnimationFrame();
-            
             int col = currentFrame % columns;
             int row = currentFrame / columns;
+        if(enemy.getismoving() && !enemy.getisAttacking()){
             
             int spriteWidth = static_cast<int>(BlackRunning.getSize().x) / columns;
             int spriteHeight = static_cast<int>(BlackRunning.getSize().y) / rows;
@@ -555,6 +591,23 @@ void Game::renderEnemy(const Enemy& enemy) {
             sf::Vector2f origin(spriteWidth / 2.0f, spriteHeight / 2.0f);
             Enemysprite.setOrigin(origin);
         }
+        else if(enemy.getisAttacking() && enemy.getismoving()){
+            Enemysprite.setTexture(BlackAttack);
+            int spriteWidth = static_cast<int>(BlackAttack.getSize().x) / columns;
+            int spriteHeight = static_cast<int>(BlackAttack.getSize().y) / rows;
+            
+            Enemysprite.setTextureRect(sf::IntRect(
+                sf::Vector2i(col * spriteWidth, row * spriteHeight),
+                sf::Vector2i(spriteWidth, spriteHeight)
+            ));
+            
+            Enemysprite.setPosition(enemyPos);
+            float scale = (cellWidth * 2.6) / spriteWidth;
+            Enemysprite.setScale(sf::Vector2f(-scale, scale));
+            sf::Vector2f origin(spriteWidth / 2.0f, spriteHeight / 2.0f);
+            Enemysprite.setOrigin(origin);
+        }
+        
         else{
             // NOT MOVING - use idle sprite
             Enemysprite.setTexture(BlackIdle);

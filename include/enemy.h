@@ -39,6 +39,7 @@ public:
     int getAnimationFrame() const;
     bool getIsActive() const;
     GridPosition getPosition() const;
+    bool getisAttacking() const;
     int getType() const;
     int getHealth() const;
     int getMaxHealth() const;
