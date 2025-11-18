@@ -25,9 +25,11 @@ bool Enemy::getismoving() const{
 void Enemy::update(double deltaTime, Map * map , Ally** allies, Dojo* dojo, int count){
     if (!isActive) return;
 
+    moveAlongPath(deltaTime, map->getgrid());
+
     checkForTargets(allies, count, dojo);
 
-    if (isAttacking && currentTarget) {
+    if(isAttacking){
         attackTarget(deltaTime, dojo);
     }
     
@@ -36,7 +38,6 @@ void Enemy::update(double deltaTime, Map * map , Ally** allies, Dojo* dojo, int 
         currentAnimFrame = (currentAnimFrame + 1) % 5;
         animationTimer = 0.0f;
     }
-    moveAlongPath(deltaTime, map->getgrid());
 }
 
 void Enemy::checkForTargets(Ally** allies, int allyCount, Dojo* dojo){
@@ -51,14 +52,14 @@ void Enemy::checkForTargets(Ally** allies, int allyCount, Dojo* dojo){
         }
     }
     
-    if(reachedDojo){
+    if(reachedDojo && dojo && !dojo->isDojoDestroyed()){
         currentTarget = nullptr;
         isAttacking = true;
         isMoving = false;
         return;
     }
     
-    if(currentTarget){
+    if(currentTarget || isAttacking){
         currentTarget = nullptr;
         isAttacking = false;
         isMoving = true;
@@ -73,19 +74,22 @@ void Enemy::attackTarget(float deltaTime, Dojo* dojo){
     if(attackTimer <= 0.0f){
         if(currentTarget){
             Samurai* samurai = dynamic_cast<Samurai*>(currentTarget);
-            if(samurai && isSamuraiInRange(samurai)){
+            if(samurai && samurai->getIsActive() && isSamuraiInRange(samurai)){
                 samurai->takeDamage(damage);
                 isMoving = false;
             }
-            else if(samurai && !isSamuraiInRange(samurai)){
-                isMoving = true;
+            else{
+                currentTarget = nullptr;
+                if(!reachedDojo){
+                    isAttacking = false;
+                    isMoving = true;
+                }
             }
         } 
-        else{
-            if(dojo && reachedDojo){
-                cout << "attacking dojo, damage: " << damage << endl;
-                dojo->takeDamage(damage);
-            }
+        else if(reachedDojo && dojo && !dojo->isDojoDestroyed()){
+            cout << "attacking dojo, damage: " << damage << endl;
+            dojo->takeDamage(damage);
+            
         }
         attackTimer = attackCooldown;
     }
@@ -171,11 +175,13 @@ void Enemy::moveAlongPath(float deltaTime, vector<vector<int>> grid){
     float dy = pixelPosition.y - dojoPixelY;
     float distanceToDojo = std::sqrt(dx*dx + dy*dy);
 
-    // Stop when within 60 pixels of dojo center (adjust this value)
+    //Stop when within 60 pixels of dojo center(adjust this value)
     if(distanceToDojo <= 60.0f){
-    isMoving = false;
-    reachedDojo = true;
-}
+        cout << "reached dojo" << endl;
+        isMoving = false;
+        reachedDojo = true;
+        isAttacking = true;
+    }
 }
 
 //commented out for future use in recursive pathfinding algorithm
@@ -225,5 +231,5 @@ Chunin::Chunin(GridPosition spawnPos , GridPosition dojo) : Enemy(1, 100, 10, 25
 Chunin::~Chunin() {}
 
 // Jonin implementation
-Jonin::Jonin(GridPosition spawnPos , GridPosition dojo) : Enemy(2, 200, 20, 20.0f, spawnPos , dojo) {}
+Jonin::Jonin(GridPosition spawnPos , GridPosition dojo) : Enemy(2, 2, 150, 20.0f, spawnPos , dojo) {}
 Jonin::~Jonin() {}

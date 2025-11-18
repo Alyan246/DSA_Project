@@ -47,8 +47,10 @@ private:
     float spawnInterval;            
     int enemiesToSpawn;      
     int enemiesSpawned;
+    int enemiesDefeated;
     int currentWave;
-    int playerResources;
+    int samuraiLeft;
+    int archerTowersLeft;
     bool gameRunning;
     bool gameWon;
     bool gameLost;
@@ -68,12 +70,9 @@ public:
     void handleEvents();
     void update(float deltaTime);
     void render();
-    void spawnEnemyWave();
-  
     void checkGameOver();
     void placeAlly(int type, int gridX, int gridY);
     void removeAlly(int gridX, int gridY);
-    void addResources(int amount);
     void initializeEnemyStack();  
     void spawnFromStack(float deltaTime);
     bool canPlaceAlly(int gridX, int gridY);

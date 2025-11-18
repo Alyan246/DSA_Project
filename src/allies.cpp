@@ -223,8 +223,8 @@ bool ArcherTower::isInRange(const Enemy* enemy) const{
     int dx = std::abs(position.x - enemyPos.x);
     int dy = std::abs(position.y - enemyPos.y);
     
-    // 2 block radius in all directions
-    return (dx <= 2 && dy <= 2);
+    // 4 block radius in all directions
+    return (dx <= 4 && dy <= 4);
 }
 
 void ArcherTower::updateEnemyQueue(Enemy** enemies, int enemyCount){
