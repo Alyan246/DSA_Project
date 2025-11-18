@@ -13,13 +13,6 @@ void Dojo::takeDamage(int amount) {
     }
 }
 
-void Dojo::repair(int amount) {
-    health += amount;
-    if (health > maxHealth) {
-        health = maxHealth;
-    }
-}
-
 bool Dojo::isDojoDestroyed() const { 
     return isDestroyed; 
 }

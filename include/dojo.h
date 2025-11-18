@@ -15,7 +15,6 @@ public:
     ~Dojo();
     
     void takeDamage(int amount);
-    void repair(int amount);
     bool isDojoDestroyed() const;
     int getHealth() const;
     int getMaxHealth() const;

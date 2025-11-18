@@ -4,9 +4,9 @@
 
 Game::Game() :
                 currentMap(nullptr), playerDojo(nullptr), allies(nullptr), enemies(nullptr),
-                currentWave(0), playerResources(100), gameRunning(false), gameWon(false), gameLost(false),
-                maxAllies(50), maxEnemies(100), allyCount(0),spawnTimer(0.0f), spawnInterval(2.0f), enemiesToSpawn(20), enemiesSpawned(0), enemyCount(0), windowheight(sf::VideoMode::getDesktopMode().size.y * 0.8f), windowwidth(sf::VideoMode::getDesktopMode().size.x * 0.8f),
-                window(sf::VideoMode({static_cast<unsigned int>(sf::VideoMode::getDesktopMode().size.x * 0.8f),static_cast<unsigned int>(sf::VideoMode::getDesktopMode().size.y * 0.8f)}),"DojoDefender")
+                currentWave(0), samuraiLeft(4), archerTowersLeft(16), gameRunning(false), gameWon(false), gameLost(false),
+                maxAllies(50), maxEnemies(100), allyCount(0),spawnTimer(0.0f), spawnInterval(2.0f), enemiesToSpawn(20), enemiesSpawned(0), enemiesDefeated(0), enemyCount(0), windowheight(sf::VideoMode::getDesktopMode().size.y * 0.8f), windowwidth(sf::VideoMode::getDesktopMode().size.x * 0.8f),
+                window(sf::VideoMode({static_cast<unsigned int>(sf::VideoMode::getDesktopMode().size.x * 0.8f),static_cast<unsigned int>(sf::VideoMode::getDesktopMode().size.y * 0.8f)}),"DojoDefender"), currentScreen(0), showTitleScreens(true)
                {
     allies = new Ally*[maxAllies];
     enemies = new Enemy*[maxEnemies];
@@ -23,7 +23,18 @@ Game::~Game() {
     cleanup();
 }
 
+void Game::loadTitleScreens(){
+    if(!titleScreen.loadFromFile("images/Cover.png")) {
+        cout << "Failed to load title screen 1" << endl;
+    }
+    if(!howToPlayScreen.loadFromFile("images/Instructions1.png")) {
+        cout << "Failed to load title screen 2" << endl;
+    }
+}
+
 void Game::initialize() {
+    loadTitleScreens();
+
     // Initialize font
     if(!BlackRunning.loadFromFile("images/Blackninjarun.png")){
         cout<<"Failed to load black ninja running ";
@@ -95,33 +106,87 @@ void Game::run() {
     
     while(gameRunning && window.isOpen()) {
         deltaTime = clock.restart().asSeconds();
-        handleEvents();
-        update(deltaTime);
-        render();
-        checkGameOver();
+        if(showTitleScreens){
+            handleTitleScreenEvents();
+            renderTitleScreen();
+        }
+        else{
+            handleEvents();
+            if(!gameLost && !gameWon){
+                update(deltaTime);
+            }
+            render();
+            checkGameOver();
+        }
     }
 }
 
-void Game::handleEvents() {
-    // pollEvent() now returns std::optional<sf::Event>
+void Game::handleTitleScreenEvents(){
+    while(auto eventOpt = window.pollEvent()){
+        const sf::Event& event = *eventOpt;
+
+        if(event.is<sf::Event::Closed>()){
+            gameRunning = false;
+            window.close();
+            return;
+        }
+
+        else if(const auto* key = event.getIf<sf::Event::KeyPressed>()){
+            if (key->scancode == sf::Keyboard::Scancode::Enter) {
+                if(currentScreen == 0){
+                    currentScreen = 1;
+                } 
+                else if(currentScreen == 1){
+                    showTitleScreens = false;
+                    currentScreen = 2;
+                }
+            }
+            else if(key->scancode == sf::Keyboard::Scancode::Escape){
+                gameRunning = false;
+                window.close();
+            }
+        }
+    }
+}
+
+void Game::renderTitleScreen(){
+    window.clear(sf::Color::Black);
+    
+    sf::Sprite titleSprite(titleScreen);
+    if(currentScreen == 0){
+        titleSprite.setTexture(titleScreen);
+
+    } 
+    else{
+        titleSprite.setTexture(howToPlayScreen);
+    }
+    
+    sf::Vector2u textureSize = titleScreen.getSize();
+    sf::Vector2f scale(static_cast<float>(windowwidth) / textureSize.x, static_cast<float>(windowheight) / textureSize.y);
+    titleSprite.setScale(scale);
+    
+    window.draw(titleSprite);
+    
+    window.display();
+}
+
+void Game::handleEvents(){
     while (auto eventOpt = window.pollEvent()) {
         const sf::Event& event = *eventOpt;
 
-        // Handle window close
-        if (event.is<sf::Event::Closed>() || !window.isOpen()) {
+        if(event.is<sf::Event::Closed>() || !window.isOpen()){
             gameRunning = false;
             window.close();
         }
 
-        // Example: handle key press (Escape quits)
-        else if (const auto* key = event.getIf<sf::Event::KeyPressed>()) {
-            if (key->scancode == sf::Keyboard::Scancode::Escape) {
+        else if(const auto* key = event.getIf<sf::Event::KeyPressed>()){
+            if(key->scancode == sf::Keyboard::Scancode::Escape) {
                 gameRunning = false;
                 window.close();
             }
         }
 
-        else if (const auto* mousekey = event.getIf<sf::Event::MouseButtonPressed>()) {
+        else if(const auto* mousekey = event.getIf<sf::Event::MouseButtonPressed>()){
             if (mousekey->button == sf::Mouse::Button::Left) {
                 // Left click - Archer Tower
                 int gridX = mousekey->position.x / 40;
@@ -133,11 +198,10 @@ void Game::handleEvents() {
                     cout << "Cannot place Archer Tower here" << endl;
                 }
             }
-            else if (mousekey->button == sf::Mouse::Button::Right) {
-                // Right click - Samurai
+            else if(mousekey->button == sf::Mouse::Button::Right){
                 int gridX = mousekey->position.x / 40;
                 int gridY = mousekey->position.y / 40;
-                if (canPlaceAlly(gridX, gridY)) {
+                if(canPlaceAlly(gridX, gridY)){
                     placeAlly(0, gridX, gridY); // Type 0 = Samurai
                     cout << "Placed Samurai" << endl;
                 } else {
@@ -146,8 +210,7 @@ void Game::handleEvents() {
             }
         }
 
-        // You can also handle mouse, resize, etc.
-        else if (const auto* resized = event.getIf<sf::Event::Resized>()) {
+        else if(const auto* resized = event.getIf<sf::Event::Resized>()){
             std::cout << "Window resized to " 
                       << resized->size.x << "x" << resized->size.y << "\n";
         }
@@ -161,7 +224,7 @@ void Game::update(float deltaTime) {
     // Update enemies
     for(int i = 0; i < enemyCount; i++) {
         if(enemies[i] && enemies[i]->getIsActive()) {
-            enemies[i]->update(deltaTime, currentMap , *allies , allyCount);
+            enemies[i]->update(deltaTime, currentMap , allies , playerDojo, allyCount);
         }
     }
     
@@ -525,28 +588,101 @@ void Game::renderEnemyspawn() {
 }
 
 
-void Game::renderUI() {
-    sf::Text text(font,"",20);
-    text.setFillColor(sf::Color::White);
-    text.setString("Resources: " + std::to_string(playerResources));
-    sf::Vector2f textpos(10.0f , 10.0f);
-    text.setPosition(textpos);
-    window.draw(text);
-    
-    text.setString("Wave: " + std::to_string(currentWave));
+void Game::renderUI(){
+    sf::RectangleShape resourceOverlay(sf::Vector2f(310.0f, 120.0f));
+    resourceOverlay.setPosition(sf::Vector2f(15.0f, 20.0f));
+    resourceOverlay.setFillColor(sf::Color(0, 0, 0, 100));
+    window.draw(resourceOverlay);
 
-    text.setPosition(sf::Vector2f(10.0f,40.0f));
+    sf::Text text(font);
+    text.setCharacterSize(30);
+    text.setFillColor(sf::Color::White);
+
+    text.setString("Samurai remaining: " + std::to_string(samuraiLeft));
+    text.setPosition(sf::Vector2f(20.0f, 15.0f));
     window.draw(text);
-    
+
+    text.setString("Archer Towers remaining: " + std::to_string(archerTowersLeft));
+    text.setPosition(sf::Vector2f(20.0f, 55.0f));
+    window.draw(text);
+
     text.setString("Dojo Health: " + std::to_string(playerDojo->getHealth()));
-    sf::Vector2f stringpos(10.0f , 70.0f);
-    text.setPosition(stringpos);
+    text.setPosition(sf::Vector2f(20.0f, 95.0f));
     window.draw(text);
-    
-    text.setString("Allies: " + std::to_string(allyCount) + " | Enemies: " + std::to_string(enemyCount));
-    
-    text.setPosition(sf::Vector2f(10.0f,100.0f));
-    window.draw(text);
+ 
+    if(gameLost){
+        sf::RectangleShape overlay(sf::Vector2f(static_cast<float>(windowwidth), static_cast<float>(windowheight)));
+        overlay.setFillColor(sf::Color(0, 0, 0, 180));
+        window.draw(overlay);
+        
+        sf::Text gameOverText(font);
+        gameOverText.setString("GAME OVER");
+        gameOverText.setCharacterSize(80);
+        gameOverText.setFillColor(sf::Color::Red);
+        gameOverText.setStyle(sf::Text::Bold);
+
+        sf::FloatRect textBounds = gameOverText.getLocalBounds();
+        gameOverText.setOrigin(sf::Vector2f(textBounds.size.x / 2.0f, textBounds.size.y / 2.0f));
+        gameOverText.setPosition(sf::Vector2f(windowwidth / 2.0f, windowheight / 2.0f - 50));
+        window.draw(gameOverText);
+
+        sf::Text subtitleText(font);
+        subtitleText.setString("Your Dojo Has Been Destroyed!");
+        subtitleText.setCharacterSize(30);
+        subtitleText.setFillColor(sf::Color::White);
+        
+        sf::FloatRect subtitleBounds = subtitleText.getLocalBounds();
+        subtitleText.setOrigin(sf::Vector2f(subtitleBounds.size.x / 2.0f, subtitleBounds.size.y / 2.0f));
+        subtitleText.setPosition(sf::Vector2f(windowwidth / 2.0f, windowheight / 2.0f + 50));
+        window.draw(subtitleText);
+
+        sf::Text instructionText(font);
+        instructionText.setString("Press ESC to exit");
+        instructionText.setCharacterSize(20);
+        instructionText.setFillColor(sf::Color(200, 200, 200));
+        
+        sf::FloatRect instructBounds = instructionText.getLocalBounds();
+        instructionText.setOrigin(sf::Vector2f(instructBounds.size.x / 2.0f, instructBounds.size.y / 2.0f));
+        instructionText.setPosition(sf::Vector2f(windowwidth / 2.0f, windowheight / 2.0f + 120));
+        window.draw(instructionText);
+    }
+
+    if(gameWon){
+        sf::RectangleShape overlay(sf::Vector2f(static_cast<float>(windowwidth), static_cast<float>(windowheight)));
+        overlay.setFillColor(sf::Color(0, 0, 0, 180));
+        window.draw(overlay);
+        
+        sf::Text victoryText(font);
+        victoryText.setString("VICTORY");
+        victoryText.setCharacterSize(80);
+        victoryText.setFillColor(sf::Color::Green);
+        victoryText.setStyle(sf::Text::Bold);
+
+        sf::FloatRect textBounds = victoryText.getLocalBounds();
+        victoryText.setOrigin(sf::Vector2f(textBounds.size.x / 2.0f, textBounds.size.y / 2.0f));
+        victoryText.setPosition(sf::Vector2f(windowwidth / 2.0f, windowheight / 2.0f - 50));
+        window.draw(victoryText);
+
+        sf::Text subtitleText(font);
+        subtitleText.setString("You successfully defended the Dojo!");
+        subtitleText.setCharacterSize(30);
+        subtitleText.setFillColor(sf::Color::White);
+        
+        sf::FloatRect subtitleBounds = subtitleText.getLocalBounds();
+        subtitleText.setOrigin(sf::Vector2f(subtitleBounds.size.x / 2.0f, subtitleBounds.size.y / 2.0f));
+        subtitleText.setPosition(sf::Vector2f(windowwidth / 2.0f, windowheight / 2.0f + 50));
+        window.draw(subtitleText);
+
+        sf::Text instructionText(font);
+        instructionText.setString("Press ESC to exit");
+        instructionText.setCharacterSize(20);
+        instructionText.setFillColor(sf::Color(200, 200, 200));
+        
+        sf::FloatRect instructBounds = instructionText.getLocalBounds();
+        instructionText.setOrigin(sf::Vector2f(instructBounds.size.x / 2.0f, instructBounds.size.y / 2.0f));
+        instructionText.setPosition(sf::Vector2f(windowwidth / 2.0f, windowheight / 2.0f + 120));
+        window.draw(instructionText);
+    }
 }
 
 void Game::renderArrows(){
@@ -632,25 +768,40 @@ void Game::spawnFromStack(float deltaTime){
     }
 }
 
-void Game::spawnEnemyWave() {
-    // Implementation for spawning enemy waves
-
-}
-
-void Game::checkGameOver() {
-    if (playerDojo->isDojoDestroyed()) {
+void Game::checkGameOver(){
+    if(playerDojo->isDojoDestroyed()){
         gameLost = true;
-        gameRunning = false;
+    }
+    bool noMoreEnemiesToSpawn = (enemiesSpawned >= enemiesToSpawn) && enemyStack.empty();
+    bool noActiveEnemies = true;
+    
+    for(int i = 0; i < enemyCount; i++){
+        if(enemies[i] && enemies[i]->getIsActive()){
+            noActiveEnemies = false;
+            break;
+        }
+    }
+    
+    if(noMoreEnemiesToSpawn && noActiveEnemies){
+        gameWon = true;
     }
 }
 
 void Game::placeAlly(int type, int gridX, int gridY) {
-    if (allyCount >= maxAllies) return;
+    if(allyCount >= maxAllies) return;
     
-    if (type == 0) { // Samurai
-        allies[allyCount] = new Samurai(GridPosition(gridX, gridY));
-    } else { // Archer Tower
-        allies[allyCount] = new ArcherTower(GridPosition(gridX, gridY));
+    if(type == 0){ // Samurai
+        if(samuraiLeft > 0) {
+            allies[allyCount] = new Samurai(GridPosition(gridX, gridY));
+            samuraiLeft--;
+        }
+    } 
+    else{ // Archer Tower
+        if(archerTowersLeft > 0){
+            allies[allyCount] = new ArcherTower(GridPosition(gridX, gridY));
+            archerTowersLeft--;
+        }
+
     }
     allyCount++;
 }
@@ -674,10 +825,6 @@ void Game::removeAlly(int gridX, int gridY) {
     }
 }
 
-void Game::addResources(int amount) {
-    playerResources += amount;
-}
-
 bool Game::canPlaceAlly(int gridX, int gridY) {
     if (!currentMap) {
         std::cout << "currentMap is null!\n";
@@ -696,7 +843,7 @@ bool Game::canPlaceAlly(int gridX, int gridY) {
         if (allies[i] && allies[i]->getIsActive()) {
             GridPosition pos = allies[i]->getPosition();
             if (pos.x == gridX && pos.y == gridY) {
-                std::cout << "❌ Cell already has ally: " << gridX << "," << gridY << "\n";
+                std::cout << "Cell already has ally: " << gridX << "," << gridY << "\n";
                 return false;
             }
         }
