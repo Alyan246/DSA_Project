@@ -43,7 +43,7 @@ private:
     sf::Texture howToPlayScreen;
     int currentScreen;
     bool showTitleScreens;
-    sf::Texture YellowIdle , BlackIdle , WhiteIdle;
+    sf::Texture BlackIdle , WhiteIdle;
 
     float spawnTimer;              
     float spawnInterval;            
