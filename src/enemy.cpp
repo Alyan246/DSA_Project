@@ -29,21 +29,21 @@ void Enemy::update(double deltaTime, Map * map , Ally** allies, Dojo* dojo, int 
 
     checkForTargets(allies, count, dojo);
 
-    if(isAttacking){
-        attackTarget(deltaTime, dojo);
-        animationTimer += deltaTime;
-        if(animationTimer >= 0.3f) {
-            currentAnimFrame = (currentAnimFrame + 1) % 5;
-            animationTimer = 0.0f;
+        if(isAttacking){
+            attackTarget(deltaTime, dojo);
+            animationTimer += deltaTime;
+            if(animationTimer >= 0.3f) {
+                currentAnimFrame = (currentAnimFrame + 1) % 5;
+                animationTimer = 0.0f;
+            }
         }
-    }
-    else{
-        animationTimer += deltaTime;
-        if(animationTimer >= 0.6f) {
-            currentAnimFrame = (currentAnimFrame + 1) % 5;
-            animationTimer = 0.0f;
+        else{
+            animationTimer += deltaTime;
+            if(animationTimer >= 0.6f) {
+                currentAnimFrame = (currentAnimFrame + 1) % 5;
+                animationTimer = 0.0f;
+            }
         }
-    }
 }
 
 void Enemy::checkForTargets(Ally** allies, int allyCount, Dojo* dojo){
@@ -186,7 +186,7 @@ void Enemy::moveAlongPath(float deltaTime, vector<vector<int>> grid){
     float distanceToDojo = std::sqrt(dx*dx + dy*dy);
 
     //Stop when within 80 pixels of dojo center(adjust this value)
-    if(distanceToDojo <= 80.0f){
+    if(distanceToDojo <= 60.0f){
         cout << "reached dojo" << endl;
         isMoving = false;
         reachedDojo = true;

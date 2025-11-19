@@ -455,18 +455,17 @@ void Game::renderAlly(const Ally& ally) {
 }
 
 void Game::renderEnemy(const Enemy& enemy) {
+
+    if(enemy.getType() == 0 || enemy.getType() == 2) {  // White or Black
+        cout << "Type " << enemy.getType() << " frame: " << enemy.getAnimationFrame() 
+             << " moving: " << enemy.getismoving() << " attacking: " << enemy.getisAttacking() << endl;
+    }
+
     float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth();
     float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight();
     
     sf::Vector2f enemyPos = enemy.getPixelPosition();
-
-    sf::CircleShape debugCircle(8);
-    debugCircle.setPosition(enemyPos);
-    if(enemy.getType() == 0) debugCircle.setFillColor(sf::Color(255, 255, 255, 128));
-    else if(enemy.getType() == 1) debugCircle.setFillColor(sf::Color(255, 255, 0, 128));
-    else debugCircle.setFillColor(sf::Color(0, 0, 0, 128));
-    window.draw(debugCircle);
-
+    enemyPos.x += 40;
     if(enemy.getType() == 0){  // Genin - White ninja
         sf::Sprite Enemysprite(Whiterunning);
         int columns = 5;
@@ -502,6 +501,7 @@ void Game::renderEnemy(const Enemy& enemy) {
             
             Enemysprite.setPosition(enemyPos);
             sf::Vector2f origin(spriteWidth / 2.0f, spriteHeight / 2.0f);
+        
             Enemysprite.setOrigin(origin);
             float scale = (cellWidth * 2.5) / spriteWidth;
             Enemysprite.setScale(sf::Vector2f(-scale, scale));
