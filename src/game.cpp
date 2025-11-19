@@ -405,7 +405,7 @@ void Game::renderAlly(const Ally& ally) {
             
             animationTime += 0.02f;
             
-            if(animationTime >= 0.15f) {
+            if(animationTime >= 0.3f) {
                 currentFrame = (currentFrame + 1) % 4;
                 animationTime = 0.0f;  
             }
@@ -417,7 +417,7 @@ void Game::renderAlly(const Ally& ally) {
             int spriteHeight = static_cast<int>(SamuraiAttacking.getSize().y) / rows;
             
             Samuraisprite.setTextureRect(sf::IntRect(
-                sf::Vector2i(col * spriteWidth, row * spriteHeight),
+                sf::Vector2i(col * spriteWidth, row * spriteHeight ),
                 sf::Vector2i(spriteWidth, spriteHeight)
             ));
             
@@ -442,7 +442,7 @@ void Game::renderAlly(const Ally& ally) {
             
             if(animationTime >= 0.15f) {
                 currentFrame = (currentFrame + 1) % 4;
-                animationTime = 0.0f;  // FIX: Was 10.0f!
+                animationTime = 0.0f; 
             }
             
             int col = currentFrame % columns;
