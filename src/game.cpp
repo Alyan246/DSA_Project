@@ -77,7 +77,7 @@ void Game::initialize() {
         cout<<"Failed to load samurai attack";
     }
     if(!SamuraiRunning.loadFromFile("images/SamuraiRunning.png")){
-        cout<<"Failed to load samurai";
+        cout<<"Failed to load samurai running";
     }
     if(!Arrowtexture.loadFromFile("images/Arrow.png")){
         cout<<"Failed to load arrow.png";
@@ -314,7 +314,7 @@ void Game::renderMap() {
             sf::Vector2f position(x * cellWidth, y * cellHeight);
             cell.setPosition(position);
             
-            // Set cell background color
+            //cell background color
             if(currentMap->getCellType(x,y) == 1) {
                 cell.setFillColor(sf::Color(255, 183, 197)); // Cherry blossom area
             } 
@@ -340,7 +340,7 @@ void Game::renderMap() {
 
            
 
-            // Draw grass texture only on grass cells (type 0)
+            // Draw grass everywhere 
             if (grass.getSize().x > 0 && grass.getSize().y > 0 ) {
                 sf::Sprite groundgrass(grass);
                 groundgrass.setPosition(position);
@@ -349,7 +349,7 @@ void Game::renderMap() {
                 window.draw(groundgrass);
             }
 
-            // Draw obstacle trees only on path cells (type 2)
+            // drawing obstacle trees where ever 2 is present
             if (obstacletree.getSize().x > 0 && obstacletree.getSize().y > 0 && currentMap->getCellType(x,y) == 2) {
                 sf::Sprite Obstacle(obstacletree);
                 sf::Vector2f treeposition((x * cellWidth) -15, (y * cellHeight) -20);
@@ -359,7 +359,7 @@ void Game::renderMap() {
                 window.draw(Obstacle);
             }
 
-            // Draw boundary trees only on boundary cells (type 1)
+            // drawing boundary trees at 1s
             if (boundarytree.getSize().x > 0 && boundarytree.getSize().y > 0 && currentMap->getCellType(x,y) == 1) {
                 sf::Sprite Boundary(boundarytree);
                 sf::Vector2f boundaryPosition((x * cellWidth) -10, (y * cellHeight) -18);
@@ -382,24 +382,24 @@ void Game::renderAlly(const Ally& ally) {
     float cellWidth  = static_cast<float>(windowwidth) / currentMap->getWidth();
     float cellHeight = static_cast<float>(windowheight) / currentMap->getHeight();
     
-    sf::Vector2f allyPos = ally.getPixelPos();
-    allyPos.y -= 60;
-    allyPos.x -= 30;    
-    if(ally.getType() == 0){  // Samurai
-        // Remove const to call non-const methods
+        sf::Vector2f allyPos = ally.getPixelPos();
+        allyPos.y -= 60;
+        allyPos.x -= 30;    
+        if(ally.getType() == 0){  // Samurai
+    
         Samurai* warrior = const_cast<Samurai*>(dynamic_cast<const Samurai*>(&ally));
         
         if(!warrior) return;
         
-        // Check if attacking first
+    
         if(warrior->isInAttackRange()) {
-            // ATTACKING ANIMATION
+            // When attacking 
             sf::Sprite Samuraisprite(SamuraiAttacking);
             
             int columns = 4;
             int rows = 1;
             
-            // Animation timing (you need a better way - see below)
+            
             static float animationTime = 0.0f;
             static int currentFrame = 0;
             
@@ -407,7 +407,7 @@ void Game::renderAlly(const Ally& ally) {
             
             if(animationTime >= 0.15f) {
                 currentFrame = (currentFrame + 1) % 4;
-                animationTime = 0.0f;  // FIX: Was 10.0f!
+                animationTime = 0.0f;  
             }
             
             int col = currentFrame % columns;
@@ -426,21 +426,47 @@ void Game::renderAlly(const Ally& ally) {
             float scale = (cellWidth * 3) / spriteWidth;
             Samuraisprite.setScale(sf::Vector2f(scale, scale));
             
-            window.draw(Samuraisprite);  // FIX: Actually draw it!
+            window.draw(Samuraisprite); 
             
         } else if(warrior->isrunning()) {
-            // RUNNING
-            sf::Sprite SamuraiSprite(SamuraiRunning);
-            SamuraiSprite.setPosition(allyPos);
-            float scale = (cellWidth * 2) / SamuraiRunning.getSize().x;
-            SamuraiSprite.setScale(sf::Vector2f(scale, scale));
-            window.draw(SamuraiSprite);
+            // if the samurai is running
+            sf::Sprite Samuraisprite(SamuraiRunning);
+            
+            int columns = 6;
+            int rows = 1;
+
+            static float animationTime = 0.0f;
+            static int currentFrame = 0;
+            
+            animationTime += 0.02f;
+            
+            if(animationTime >= 0.15f) {
+                currentFrame = (currentFrame + 1) % 4;
+                animationTime = 0.0f;  // FIX: Was 10.0f!
+            }
+            
+            int col = currentFrame % columns;
+            int row = currentFrame / columns;
+            
+            int spriteWidth = static_cast<int>(SamuraiRunning.getSize().x) / columns;
+            int spriteHeight = static_cast<int>(SamuraiRunning.getSize().y) / rows;
+            
+            Samuraisprite.setTextureRect(sf::IntRect(
+                sf::Vector2i(col * spriteWidth, row * spriteHeight),
+                sf::Vector2i(spriteWidth, spriteHeight)
+            ));
+            
+            Samuraisprite.setPosition(allyPos);
+            
+            float scale = (cellWidth * 3) / spriteWidth;
+            Samuraisprite.setScale(sf::Vector2f(scale, scale));
+            window.draw(Samuraisprite);
             
         } else {
             // STANDING/IDLE
             sf::Sprite SamuraiSprite(SamuraiStanding);
             SamuraiSprite.setPosition(allyPos);
-            float scale = (cellWidth * 3.5) / SamuraiStanding.getSize().x;
+            float scale = (cellWidth * 3) / SamuraiStanding.getSize().x;
             SamuraiSprite.setScale(sf::Vector2f(scale, scale));
             window.draw(SamuraiSprite);
         }

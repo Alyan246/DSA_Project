@@ -47,25 +47,33 @@ void Samurai::update(float deltaTime, Enemy** enemies, int enemyCount, Ally** al
     
     attackCooldown -= deltaTime;
     
+    // Static timers shared by ALL samurai
+    static float sharedAnimTimer = 0.0f;
+    static int sharedAttackFrame = 0;
+    static int sharedRunFrame = 0;
     
     if(isInAttackRange()) {
-       
-        animationTimer += deltaTime;
-        if(animationTimer >= 0.15f) {  // Attack animation speed
-            currentAnimFrame = (currentAnimFrame + 1) % 4;  // 4 attack frames
-            animationTimer = 0.0f;
+        // Update shared attack animation
+        sharedAnimTimer += deltaTime;
+        if(sharedAnimTimer >= 0.15f) {
+            sharedAttackFrame = (sharedAttackFrame + 1) % 4;
+            sharedAnimTimer = 0.0f;
         }
-    } else if(isMoving) {
-       
-        animationTimer += deltaTime;
-        if(animationTimer >= 0.1f) {  // Run animation speed
-            currentAnimFrame = (currentAnimFrame + 1) % 4;  // 4 run frames
-            animationTimer = 0.0f;
+        currentAnimFrame = sharedAttackFrame;
+    } 
+    else if(isMoving) {
+        // Update shared run animation
+        sharedAnimTimer += deltaTime;
+        if(sharedAnimTimer >= 0.1f) {
+            sharedRunFrame = (sharedRunFrame + 1) % 4;
+            sharedAnimTimer = 0.0f;
         }
-    } else {
+        currentAnimFrame = sharedRunFrame;
+    } 
+    else {
         
         currentAnimFrame = 0;
-        animationTimer = 0.0f;
+        sharedAnimTimer = 0.0f;
     }
     
     if(!currentTarget || !currentTarget->getIsActive()){
@@ -86,6 +94,7 @@ void Samurai::update(float deltaTime, Enemy** enemies, int enemyCount, Ally** al
         }
     }
 }
+
 void Samurai::findClosestTarget(Enemy** enemies, int enemyCount){
     currentTarget = nullptr;
     float closestDistance = std::numeric_limits<float>::max(); //tis is the biggest float value
